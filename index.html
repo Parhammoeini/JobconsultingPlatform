@@ -47,6 +47,18 @@
     <code>Consultant</code> and their <code>RegistrationStatus</code>, ensuring that 
     funds are only processed for approved.
 </div>
+<h2>Implementation Highlights</h2>
+<ul>
+    <li><strong>Simulation Accuracy:</strong> Per Section 5.1.2, the <code>PaymentService</code> implements a 3000ms thread sleep to simulate gateway latency.</li>
+    <li><strong>Data Traceability:</strong> The <code>PaymentRecord</code> model ensures every successful transaction is linked to a <code>clientId</code> and a unique <code>transactionId</code>.</li>
+    <li><strong>Admin Oversight:</strong> The <code>Consultant</code> model utilizes a <code>RegistrationStatus</code> enum, enabling the Admin (UC11) to control platform access.</li>
+</ul>
     </div>
+    <div class="pattern-box">
+    <strong>Validation Engine:</strong> Each strategy implements unique validation logic. 
+    The <code>PayPalStrategy</code> utilizes Regular Expressions (Regex) to verify 
+    account identifiers, while <code>CreditCardStrategy</code> performs length 
+    and format checks on CVV and Expiry fields.
+</div>
 </body>
 </html>
