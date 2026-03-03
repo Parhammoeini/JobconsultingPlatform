@@ -30,9 +30,23 @@
         <div class="pattern-box">
             <strong>Factory Pattern:</strong> Centralizes the creation of payment strategies based on user input.
         </div>
-
-        <h2>Team Integration</h2>
-        <p>The platform currently integrates <code>SystemPolicy</code> (UC12) and <code>Consultant</code> (UC11) models from team contributors.</p>
+        <h2>Cross-Module Collaboration</h2>
+<p>
+    The platform's architecture is designed for seamless interaction between subsystems. 
+    The <strong>Payment Engine</strong> does not operate in a vacuum; it actively consumes 
+    data from the <strong>Administrative Module</strong> and the <strong>Consultant Subsystem</strong> 
+    to enforce business rules.
+</p>
+<div class="pattern-box">
+    <strong>Regulatory Compliance (UC12):</strong> The <code>PaymentService</code> references 
+    the <code>SystemPolicy</code> model to dynamically adjust platform fees and cancellation windows 
+    defined by the Admin.
+</div>
+<div class="pattern-box">
+    <strong>Stakeholder Verification (UC11):</strong> Every transaction validates the 
+    <code>Consultant</code> and their <code>RegistrationStatus</code>, ensuring that 
+    funds are only processed for approved.
+</div>
     </div>
 </body>
 </html>
