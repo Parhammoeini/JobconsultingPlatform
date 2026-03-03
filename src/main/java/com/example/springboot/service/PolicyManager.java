@@ -7,12 +7,6 @@ import java.util.Map;
 /**
  * PolicyManager – SINGLETON DESIGN PATTERN
  *
- * Why Singleton?
- *   System policies must be consistent across the entire application.
- *   Only one PolicyManager instance should ever exist so that all parts
- *   of the system (booking logic, payment processing, notifications)
- *   read the same policy values at all times.
- *
  * Used by UC12 – Define System Policies.
  */
 public class PolicyManager {
