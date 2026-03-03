@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Job Consulting Platform - Documentation</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: auto; padding: 20px; background: #f4f4f4; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; }
+        h2 { color: #2980b9; margin-top: 30px; }
+        .pattern-box { background: #e8f4fd; border-left: 5px solid #3498db; padding: 15px; margin: 10px 0; }
+        code { background: #eee; padding: 2px 5px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Job Consulting Platform Documentation</h1>
+        <p><strong>Phase 1: Architecture & Integration</strong></p>
+        
+        <h2>Project Architecture</h2>
+        <p>The system utilizes a <strong>Layered Architecture</strong> to separate web concerns (Controllers), business logic (Services), and data structures (Models).</p>
+
+        <h2>Design Patterns Implemented</h2>
+        <div class="pattern-box">
+            <strong>Strategy Pattern (UC5):</strong> Encapsulates payment logic for Credit Cards, PayPal, and Bank Transfers.
+        </div>
+        <div class="pattern-box">
+            <strong>Observer Pattern (UC7):</strong> Decouples payment execution from transaction history logging.
+        </div>
+        <div class="pattern-box">
+            <strong>Factory Pattern:</strong> Centralizes the creation of payment strategies based on user input.
+        </div>
+        <h2>Cross-Module Collaboration</h2>
+<p>
+    The platform's architecture is designed for seamless interaction between subsystems. 
+    The <strong>Payment Engine</strong> does not operate in a vacuum; it actively consumes 
+    data from the <strong>Administrative Module</strong> and the <strong>Consultant Subsystem</strong> 
+    to enforce business rules.
+</p>
+<div class="pattern-box">
+    <strong>Regulatory Compliance (UC12):</strong> The <code>PaymentService</code> references 
+    the <code>SystemPolicy</code> model to dynamically adjust platform fees and cancellation windows 
+    defined by the Admin.
+</div>
+<div class="pattern-box">
+    <strong>Stakeholder Verification (UC11):</strong> Every transaction validates the 
+    <code>Consultant</code> and their <code>RegistrationStatus</code>, ensuring that 
+    funds are only processed for approved.
+</div>
+    </div>
+</body>
+</html>
