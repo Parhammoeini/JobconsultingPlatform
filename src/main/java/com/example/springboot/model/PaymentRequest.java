@@ -19,7 +19,7 @@ public class PaymentRequest {
     // Default Constructor
     public PaymentRequest() {}
 
-    // GETTERS AND SETTERS
+    // getters/setters
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
 
