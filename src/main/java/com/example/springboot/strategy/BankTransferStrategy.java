@@ -7,10 +7,14 @@ import org.springframework.stereotype.Component;
 public class BankTransferStrategy implements PaymentStrategy {
 
     @Override
+    public String getMethodName() {
+        return "BANK_TRANSFER"; // This "links" the class to the String used in the test
+    }
+
+    @Override
     public boolean validate(PaymentRequest request) {
         System.out.println("Validating Bank Transfer Details...");
         
-        // Requirement 5.1.1: Validate account number and routing number formats
         boolean hasAccount = request.getAccountNumber() != null && request.getAccountNumber().length() >= 8;
         boolean hasRouting = request.getRoutingNumber() != null && request.getRoutingNumber().length() == 9;
 
@@ -23,7 +27,6 @@ public class BankTransferStrategy implements PaymentStrategy {
 
     @Override
     public String process(double amount) {
-        // Simulated processing
         System.out.println("Processing Bank Transfer for: $" + amount);
         return "SUCCESS";
     }

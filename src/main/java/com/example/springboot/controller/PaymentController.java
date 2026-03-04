@@ -4,6 +4,8 @@ import com.example.springboot.service.PaymentService;
 import com.example.springboot.model.PaymentRequest;
 import org.springframework.web.bind.annotation.*;
 
+// This is the entry point
+// Converts HTTP requests to Java objects 
 @RestController
 @RequestMapping("/api/payments")
 public class PaymentController {
@@ -15,6 +17,7 @@ public class PaymentController {
     }
 
     // A simple GET request to test if UC5 (Process Payment) works
+    // is hardcoded for testing
     @GetMapping("/test")
     public String testPayment() {
         PaymentRequest request = new PaymentRequest();
