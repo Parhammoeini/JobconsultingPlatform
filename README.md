@@ -28,5 +28,29 @@ I have completed the backend logic for the following:
 1. **Strategy Pattern**: Used to encapsulate different validation and processing algorithms for Credit Card, PayPal, and Bank Transfers. This allows for easy extension of new payment methods without modifying the core service.
 2. **Factory Pattern**: Implemented `PaymentStrategyFactory` to decouple the creation and selection of payment strategies from the `PaymentService`. This centralizes the strategy lookup logic.
 
+Admin Subsystem Integration Status (UC11-UC12)
+
+Admin subsystem backend logic is complete for the following:
+
+* **UC11 (Approve Consultant Registration):** Service ready to approve or reject consultants. Consultant status transitions: `PENDING` → `APPROVED` or `REJECTED`.
+* **UC12 (Define System Policies):** Full policy management implemented via `PolicyManager` singleton. Supports adding, updating, viewing, and removing system-wide policies (cancellation rules, refund rates, pricing strategy, notification settings).
+
+Admin Subsystem File Structure
+
+src/main/java/com/example/springboot/
+├── model/
+│   ├── Consultant.java               <-- [UC11] Consultant Entity & Registration Status
+│   ├── RegistrationStatus.java       <-- [UC11] Enum: PENDING, APPROVED, REJECTED
+│   └── SystemPolicy.java             <-- [UC12] Policy Entity (name, value, description)
+├── service/
+│   ├── AdminService.java             <-- [UC11 & UC12] Business Logic Layer
+│   └── PolicyManager.java            <-- [Pattern] GoF Singleton - System Policy Store
+└── controller/
+    └── AdminController.java          <-- [UC11 & UC12] REST API Endpoints
+
+Applied Design Patterns (GoF) — Admin Subsystem
+
+3. **Singleton Pattern**: `PolicyManager` ensures only one instance of the policy store exists across the entire application. All services read from the same policy state, preventing inconsistencies in cancellation rules, refund rates, and platform fees.
+
 
 To run the backend, navigate to the /backend directory and execute ./mvnw spring-boot:run.
