@@ -56,4 +56,4 @@ Applied Design Patterns (GoF) — Admin Subsystem
 To run the backend, navigate to the /backend directory and execute ./mvnw spring-boot:run.
 
 
-UML DIAGRAM LINK - https://drive.google.com/drive/folders/1sLBP1VWvGi7FPfEO00Vlpjaj2igJYeDf?dmr=1&ec=wgc-drive-%5Bmodule%5D-goto 
+
