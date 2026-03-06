@@ -1,3 +1,4 @@
+```text
 src/main/java/com/example/springboot/
 ├── model/
 │   └── PaymentRequest.java        <-- [UC6] Secure Data Storage / DTOs
@@ -12,7 +13,7 @@ src/main/java/com/example/springboot/
 │   └── BookingHistoryService.java <-- [UC4] Transaction History & Audit Logic
 └── repository/
     └── BookingRepository.java     <-- Data Access Layer (JPA/Hibernate)
-
+```
 
     ### 🛡️ Payment Subsystem Integration Status (UC4-UC7)
 I have completed the backend logic for the following:
@@ -43,6 +44,7 @@ Admin subsystem backend logic is complete for the following:
 
 Admin Subsystem File Structure
 
+```text
 src/main/java/com/example/springboot/
 ├── model/
 │   ├── Consultant.java               <-- [UC11] Consultant Entity & Registration Status
@@ -53,7 +55,7 @@ src/main/java/com/example/springboot/
 │   └── PolicyManager.java            <-- [Pattern] GoF Singleton - System Policy Store
 └── controller/
     └── AdminController.java          <-- [UC11 & UC12] REST API Endpoints
-
+```
 Applied Design Patterns (GoF) — Admin Subsystem
 
 3. **Singleton Pattern**: `PolicyManager` ensures only one instance of the policy store exists across the entire application. All services read from the same policy state, preventing inconsistencies in cancellation rules, refund rates, and platform fees.
@@ -79,6 +81,7 @@ src/main/java/com/example/springboot/
 │   └── BookingLifecycleService.java         <-- [Section 5] Enforces legal state transitions for all bookings
 └── controller/
     └── ClientController.java                <-- [UC1/UC2/UC3] REST API endpoints under /api/client
+```
 
 
 
