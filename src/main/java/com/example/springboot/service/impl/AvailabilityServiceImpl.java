@@ -31,7 +31,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         Availability availability =
                 AvailabilityFactory.create(start, end);
 
-        Consultant.addAvailability(availability);
+        mentor.addAvailability(availability);
 
         consultantRepository.save(mentor);
     }

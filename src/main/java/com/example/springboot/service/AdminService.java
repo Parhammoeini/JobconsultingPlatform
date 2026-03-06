@@ -39,8 +39,8 @@ public class AdminService {
      * Register a new consultant (starts in PENDING state).
      * In a real system this would be called when a consultant signs up.
      */
-    public Consultant registerConsultant(String name, String email, String specialization) {
-        Consultant consultant = new Consultant(nextConsultantId++, name, email, specialization);
+    public Consultant registerConsultant(String name, String email, String specialization, double hourlyRate) {
+        Consultant consultant = new Consultant(nextConsultantId++, name, email, specialization, hourlyRate);
         consultantStore.put(consultant.getId(), consultant);
         System.out.println("New consultant registered (PENDING): " + consultant);
         return consultant;
