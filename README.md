@@ -1,4 +1,4 @@
-project participants: samantha murillo carmona: 221622816, Ephratah: ,Jonathan: , Parham:
+project participants: samantha murillo carmona: 221622816, Ephratah Aguda: 220803490 ,Jonathan Quijano: 220510855 , Parham Moeini: 221767884
 
 
 ```text
