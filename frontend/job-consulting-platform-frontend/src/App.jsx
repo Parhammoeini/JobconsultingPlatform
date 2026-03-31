@@ -1,5 +1,6 @@
 import Availability from "./Availability";
 import Booking from "./Booking";
+import SystemStatus from "./SystemStatus";
 
 function App() {
   return (
