@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap; 
 
 /**
  * AdminController
@@ -32,7 +33,6 @@ public class AdminController {
     // -----------------------------------------------------------------------
     // UC11 – Consultant Registration Management
     // -----------------------------------------------------------------------
-
     /**
      * Register a new consultant (simulates a consultant signing up).
      * POST /api/admin/consultants/register
@@ -52,7 +52,6 @@ public class AdminController {
         Consultant consultant = adminService.registerConsultant(name, email, specialization);
         return ResponseEntity.ok(consultant);
     }
-
     /**
      * Get all consultants.
      * GET /api/admin/consultants
@@ -61,7 +60,6 @@ public class AdminController {
     public ResponseEntity<List<Consultant>> getAllConsultants() {
         return ResponseEntity.ok(adminService.getAllConsultants());
     }
-
     /**
      * Get only consultants pending approval.
      * GET /api/admin/consultants/pending
@@ -70,7 +68,6 @@ public class AdminController {
     public ResponseEntity<List<Consultant>> getPendingConsultants() {
         return ResponseEntity.ok(adminService.getPendingConsultants());
     }
-
     /**
      * Get only approved consultants.
      * GET /api/admin/consultants/approved
@@ -79,8 +76,7 @@ public class AdminController {
     public ResponseEntity<List<Consultant>> getApprovedConsultants() {
         return ResponseEntity.ok(adminService.getApprovedConsultants());
     }
-
-    /**
+     /**
      * Approve a consultant registration.
      * PUT /api/admin/consultants/{id}/approve
      */
@@ -92,7 +88,6 @@ public class AdminController {
         }
         return ResponseEntity.ok(consultant);
     }
-
     /**
      * Reject a consultant registration.
      * PUT /api/admin/consultants/{id}/reject
@@ -107,9 +102,24 @@ public class AdminController {
     }
 
     // -----------------------------------------------------------------------
-    // UC12 – System Policy Management
+    // System Status Endpoint
     // -----------------------------------------------------------------------
 
+    /**
+     * Get system stats for dashboard.
+     * GET /api/admin/status
+     */
+    @GetMapping("/status")
+    public ResponseEntity<Map<String, Object>> getStatus() {
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalConsultants", adminService.getAllConsultants().size());
+        stats.put("pendingApprovals", adminService.getPendingConsultants().size());
+        return ResponseEntity.ok(stats);
+    }
+
+    // -----------------------------------------------------------------------
+    // UC12 – System Policy Management
+    // -----------------------------------------------------------------------
     /**
      * Get all system policies.
      * GET /api/admin/policies
@@ -118,8 +128,7 @@ public class AdminController {
     public ResponseEntity<Collection<SystemPolicy>> getAllPolicies() {
         return ResponseEntity.ok(adminService.getAllPolicies());
     }
-
-    /**
+     /**
      * Get a specific policy by name.
      * GET /api/admin/policies/{name}
      */
@@ -131,7 +140,6 @@ public class AdminController {
         }
         return ResponseEntity.ok(policy);
     }
-
     /**
      * Create or update a system policy.
      * POST /api/admin/policies
