@@ -1,4 +1,3 @@
-//<<<<<<< HEAD
 //package com.example.springboot.model;
 //
 //
@@ -49,14 +48,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-public class Consultant {
+public class Consultant extends AppUser {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    private String name;
-    private String email;
     private String specialization;
 
     @Enumerated(EnumType.STRING) // Tells JPA to store "PENDING" instead of 0
@@ -64,7 +57,7 @@ public class Consultant {
     
     private Double hourlyRate;
 
-    @OneToMany(mappedBy = "consultant", cascade = CascadeType.ALL) // Changed "mentor" to "consultant" to match Availability.java
+    @OneToMany(mappedBy = "consultant", cascade = CascadeType.ALL)
     private List<Availability> availabilities = new ArrayList<>();
 
     // 1. MANDATORY: Default Constructor for JPA
@@ -72,18 +65,15 @@ public class Consultant {
 
     // 2. Your existing Constructor
     public Consultant(Long id, String name, String email, String specialization, Double hourlyRate) {
-        this.id = id;
-        this.name = name;
-        this.email = email;
+        this.setId(id);
+        this.setName(name);
+        this.setEmail(email);
         this.specialization = specialization;
         this.status = RegistrationStatus.PENDING;
         this.hourlyRate = hourlyRate;
     }
 
     // Getters and Setters
-    public Long getId() { return id; }
-    public String getName() { return name; }
-    public String getEmail() { return email; }
     public String getSpecialization() { return specialization; }
     public RegistrationStatus getStatus() { return status; }
     public Double getHourlyRate(){ return hourlyRate; }
@@ -103,7 +93,7 @@ public class Consultant {
 
     @Override
     public String toString() {
-        return "Consultant{id=" + id + ", name='" + name + "', email='" + email +
+        return "Consultant{id=" + getId() + ", name='" + getName() + "', email='" + getEmail() +
                "', specialization='" + specialization + "', status=" + status + "}";
     }
 }

@@ -68,6 +68,13 @@ public class ClientBookingService {
                     "Consultant '" + consultant.getName() + "' is not approved for bookings.");
         }
 
+        // --- Find Client (assuming it exists, for now) ---
+        // In a real app, you'd get this from the security context.
+        // Here, we'll just create a dummy one or assume client ID 1.
+        Client client = new Client();
+        client.setId(request.getClientId());
+
+
         // --- Validate availability slot ---
         Long slotId = request.getAvailabilitySlotId();
         Availability slot = availabilityRepository.findById(slotId)
@@ -96,10 +103,8 @@ public class ClientBookingService {
         }
 
         // --- Create booking ---
-        Long bookingId = idGenerator.getAndIncrement();
         Booking booking = new Booking(
-                bookingId,
-                request.getClientId(),
+                client,
                 consultant,
                 slot.getStartTime(),
                 service.getBasePrice()
@@ -111,7 +116,7 @@ public class ClientBookingService {
         availabilityRepository.save(slot);
 
         // --- Persist booking in memory ---
-        bookings.put(bookingId, booking);
+        bookings.put(booking.getId(), booking);
 
         System.out.println("Booking created: " + booking);
         return booking;
@@ -136,7 +141,7 @@ public class ClientBookingService {
         }
 
         // Only the owning client (or consultant) may cancel
-        if (!booking.getClientId().equals(requestingClientId)) {
+        if (!booking.getClient().getId().equals(requestingClientId)) {
             return new CancellationResult(bookingId, false, booking.getState(), booking.getState(),
                     "You are not authorised to cancel this booking.", 0);
         }
@@ -196,21 +201,15 @@ public class ClientBookingService {
     /** Returns all bookings belonging to a given client. */
     public List<Booking> getBookingsForClient(Long clientId) {
         return bookings.values().stream()
-                .filter(b -> b.getClientId().equals(clientId))
+                .filter(b -> b.getClient() != null && b.getClient().getId().equals(clientId))
                 .collect(Collectors.toList());
     }
 
     /** Active bookings are those not in a terminal state. */
     public List<Booking> getActiveBookingsForClient(Long clientId) {
-        Set<String> terminal = Set.of("Rejected", "Cancelled", "Completed");
         return bookings.values().stream()
-                .filter(b -> b.getClientId().equals(clientId))
-                .filter(b -> !terminal.contains(b.getState()))
+                .filter(b -> b.getClient() != null && b.getClient().getId().equals(clientId))
+                .filter(b -> lifecycleService.isActive(b.getState()))
                 .collect(Collectors.toList());
-    }
-
-    /** Returns all bookings in the system (useful for admin views). */
-    public List<Booking> getAllBookings() {
-        return new ArrayList<>(bookings.values());
     }
 }

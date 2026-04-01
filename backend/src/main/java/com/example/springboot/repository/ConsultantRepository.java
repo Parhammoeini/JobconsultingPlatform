@@ -13,4 +13,6 @@ public interface ConsultantRepository extends JpaRepository<Consultant, Long>  {
 
     List<Consultant> findByHourlyRate(Double hourlyRate);
 
+    Optional<Consultant> findByEmail(String email);
+
 }
