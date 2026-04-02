@@ -1,0 +1,26 @@
+PROJECT CHANGES SUMMARY
+
+I added Docker support for deployment as required in the assignment section:
+10.2.2 - Docker-Based Deployment (Docker Compose).
+
+What I changed:
+- Added and configured the Docker Compose setup (`docker-compose.yml`) to run:
+  - PostgreSQL database service
+  - Spring Boot backend service.
+- Connected the login flow so data from the login page is sent to the backend.
+- The login page can be opened from:
+  http://localhost:8080/login.html
+- Submitting username/password from that page saves data to the backend/database.
+
+Important requirement before running:
+- You need Docker installed.
+- You should have a Docker account and be logged in (Docker Desktop).
+
+How to run:
+- In terminal, from the project root, run:
+  docker compose up
+  (or `docker-compose up`, depending on your Docker version)
+
+Current status:
+- The project is still being debugged and improved.
+- If anyone wants to help connect/build additional UI pages and integrate them with backend routes, that would be very helpful and appreciated.

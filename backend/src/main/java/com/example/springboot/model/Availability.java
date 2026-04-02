@@ -2,8 +2,6 @@ package com.example.springboot.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 
 @Entity
 public class Availability {
@@ -19,10 +17,8 @@ public class Availability {
     @Enumerated(EnumType.STRING) // Added to store "AVAILABLE" instead of 0
     private AvailabilityStatus status;
 
-    
     @ManyToOne
     @JoinColumn(name = "consultant_id")
-    @JsonIgnore
     private Consultant consultant;
 
     // MANDATORY: Default Constructor for JPA

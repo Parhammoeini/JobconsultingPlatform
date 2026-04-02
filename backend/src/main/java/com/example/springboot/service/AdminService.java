@@ -29,11 +29,14 @@ public class AdminService {
     // -----------------------------------------------------------------------
 
     public Consultant registerConsultant(String name, String email, String specialization) {
-        // ID is null because JPA GenerationType.IDENTITY will auto-assign it
-        Consultant consultant = new Consultant(null, name, email, specialization, 0.0);
-        Consultant saved = consultantRepository.save(consultant);
-        System.out.println("New consultant registered (PENDING): " + saved);
-        return saved;
+        // Prevent duplicate email violation by checking if the user already exists
+        return consultantRepository.findByEmail(email).orElseGet(() -> {
+            // ID is null because JPA GenerationType.IDENTITY will auto-assign it
+            Consultant consultant = new Consultant(null, name, email, specialization, 0.0);
+            Consultant saved = consultantRepository.save(consultant);
+            System.out.println("New consultant registered (PENDING): " + saved);
+            return saved;
+        });
     }
 
     public Consultant approveConsultant(Long consultantId) {

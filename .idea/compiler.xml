@@ -9,12 +9,6 @@
         </processorPath>
         <module name="spring-boot.main" />
       </profile>
-      <profile name="Maven default annotation processors profile" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <module name="spring-boot-initial" />
-      </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="17" />
   </component>

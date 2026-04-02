@@ -1,0 +1,4 @@
+The AI is provided with general platform info regarding York University CS courses and career paths.
+The AI has no direct access to the PostgreSQL database. All requests are proxied through a secure Java Backend.
+Integrated using Spring Boot RestTemplate/Axios to connect with the Groq Cloud LLM API.
+Input validation is performed in the backend to ensure no PII (Personally Identifiable Info) is sent to the LLM.

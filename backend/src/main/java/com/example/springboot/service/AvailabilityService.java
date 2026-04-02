@@ -1,14 +1,13 @@
 package com.example.springboot.service;
 
+import com.example.springboot.model.Availability;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.example.springboot.model.Availability;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public interface AvailabilityService {
-     List<Availability> createAvailability(Long consultantId,
+    void createAvailability(Long mentorId,
                             LocalDateTime start,
                             LocalDateTime end);
-
-    List<Availability> getAllAvailability();                   
 }
