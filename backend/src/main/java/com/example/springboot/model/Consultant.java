@@ -47,6 +47,7 @@ import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @Entity
 public class Consultant extends AppUser {
 
@@ -96,4 +97,6 @@ public class Consultant extends AppUser {
         return "Consultant{id=" + getId() + ", name='" + getName() + "', email='" + getEmail() +
                "', specialization='" + specialization + "', status=" + status + "}";
     }
+
+    
 }

@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
  *
  * Base URL: /api/client
  */
+@CrossOrigin(origins = "http://localhost:3000") // ADD THIS LINE
 @RestController
 @RequestMapping("/api/client")
 public class ClientController {
@@ -191,4 +192,8 @@ public class ClientController {
                 "allowedTransitions", labels
         ));
     }
+    @GetMapping("/consultants")
+    public ResponseEntity<List<Consultant>> getAllConsultants() {
+    return ResponseEntity.ok(catalogService.browseAllConsultants());
+}
 }

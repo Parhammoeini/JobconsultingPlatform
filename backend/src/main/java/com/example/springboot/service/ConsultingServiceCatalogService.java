@@ -46,6 +46,9 @@ public class ConsultingServiceCatalogService {
                 .filter(s -> isConsultantApproved(s.getConsultantId()))
                 .collect(Collectors.toList());
     }
+    public List<Consultant> browseAllConsultants() {
+        return consultantRepository.findAll();
+    }
 
     /**
      * Filter services by type keyword (case-insensitive).

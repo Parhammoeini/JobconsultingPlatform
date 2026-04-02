@@ -1,11 +1,12 @@
-package com.example.springboot.controller;
 
+package com.example.springboot.controller;
 import com.example.springboot.service.PaymentService;
 import com.example.springboot.model.PaymentRequest;
 import org.springframework.web.bind.annotation.*;
 
 // This is the entry point
 // Converts HTTP requests to Java objects 
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/payments")
 public class PaymentController {
