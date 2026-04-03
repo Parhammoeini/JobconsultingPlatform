@@ -83,17 +83,16 @@ function App() {
   try {
     const requestData = {
       clientId: 1, 
-      consultantId: service.consultantId || service.consultant_id || 2, 
-      availabilitySlotId: 101, 
+      // Use the actual consultant from the service card
+      consultantId: service.consultant_id || service.consultantId, 
+      // Dynamically pick the slot ID (we mapped them to match in the SQL above)
+      availabilitySlotId: service.id + 200, 
       serviceId: service.id
     };
 
-    await requestBooking(requestData); 
-    
-    alert("Request Sent! State is now: REQUESTED");
-    
-    const res = await getMyBookings(1);
-    setMyBookings(res.data);
+    await API.post("/client/bookings", requestData);
+    alert(`Request for ${service.serviceType || service.service_type} sent!`);
+    fetchMyBookings();
   } catch (err) {
     alert("Booking failed: " + (err.response?.data?.error || err.message));
   }
