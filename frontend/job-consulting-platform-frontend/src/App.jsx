@@ -129,9 +129,17 @@ if (view === "admin") {
             <button type="submit" style={styles.primaryBtn}>Enter Platform</button>
           </form>
           <button
-          onClick={() => setView("admin")}
-          style={{ marginTop: "15px", padding: "10px 20px", background: "#2d3436", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", width: "100%" }}
-        >
+            onClick={() => {
+            const pwd = prompt("Enter admin password:");
+            if (pwd === "admin123") {
+            setView("admin");
+            } else {
+            alert("Incorrect password");
+            }
+          }}
+            style={{ marginTop: "15px", padding: "10px 20px", background: "#2d3436", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", width: "100%" }}
+
+          >
           Admin Panel
         </button>
         </div>
