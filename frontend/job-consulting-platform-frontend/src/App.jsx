@@ -30,7 +30,12 @@ function App() {
   const [selectedService, setSelectedService] = useState(null);
   const [loading, setLoading] = useState(false);
   const [myBookings, setMyBookings] = useState([]);
+<<<<<<< HEAD
   const [loginInfo, setLoginInfo] = useState(null);
+=======
+  
+  
+>>>>>>> 4b9ed38 (Finalizing AI assistant and payment features for Phase 2)
 
   // Load services immediately after login
   useEffect(() => {
@@ -66,18 +71,46 @@ function App() {
     }
   };
 
-  const handleAiConsult = async () => {
-    setLoading(true);
-    setAiResponse("");
+  const [chatHistory, setChatHistory] = useState([
+  { role: 'ai', text: "Hello! I'm your JobConsulting Assistant. How can I help you with your career journey today?" }
+  ]);
+
+const handleAiConsult = async () => {
+  if (!profile.trim()) return;
+
+  // 1. Add User Message to history
+  const newUserMsg = { role: 'user', text: profile };
+  setChatHistory(prev => [...prev, newUserMsg]);
+  setLoading(true);
+
+  const input = profile.toLowerCase();
+  let aiResponseText = "";
+
+  // 2. Intent-Based Dialogue Logic (Per Assignment Requirements)
+  if (input.includes("how do i book") || input.includes("process")) {
+    aiResponseText = "Booking is easy! 1️⃣ Browse the 'Available Services' below. 2️⃣ Click 'Request Appointment'. 3️⃣ Once a consultant approves, you'll see a 'Pay Now' button in your 'My Journey' tracker.";
+  } else if (input.includes("payment") || input.includes("pay")) {
+    aiResponseText = "We accept Credit Cards and PayPal. We use a 'Strategy Design Pattern' to securely process your chosen method at checkout.";
+  } else if (input.includes("cancel")) {
+    aiResponseText = "You can cancel any booking in the 'REQUESTED' state. Once paid, the status moves to 'PAID' and the slot is locked.";
+  } else if (input.includes("services") || input.includes("what types")) {
+    aiResponseText = "We offer 6 core services: Resume Review, Mock Interviews, Career Strategy, LinkedIn Optimization, Salary Negotiation, and general Coaching.";
+  } else {
+    // Fallback to your existing AI API for personalized recommendations
     try {
       const res = await suggestServices(profile);
-      setAiResponse(res.data);
-    } catch (err) {
-      setAiResponse("AI is currently offline. Please browse our standard services below.");
-    } finally {
-      setLoading(false);
+      aiResponseText = res.data.recommendation;
+    } catch {
+      aiResponseText = "I'm here to help! Try asking: 'How do I book?' or 'What services do you have?'";
     }
-  };
+  }
+
+  // 3. Add AI Response to history
+  setChatHistory(prev => [...prev, { role: 'ai', text: aiResponseText }]);
+  setProfile(""); // Clear input
+  setLoading(false);
+};
+
   // To Request a Booking:
   const handleRequestBooking = async (service) => {
   try {
@@ -98,18 +131,37 @@ function App() {
   }
 };
 
-    const getStatusStyle = (state) => {
+   const getStatusStyle = (state) => {
     switch (state) {
-    case 'REQUESTED': 
-      return { backgroundColor: '#ffeaa7', color: '#d63031', padding: '4px 12px', borderRadius: '20px', fontSize: '12px' };
-    case 'PENDING_PAYMENT': 
-      return { backgroundColor: '#fab1a0', color: '#e17055', fontWeight: 'bold', padding: '4px 12px', borderRadius: '20px', fontSize: '12px' };
-    case 'PAID': 
-      return { backgroundColor: '#55efc4', color: '#00b894', padding: '4px 12px', borderRadius: '20px', fontSize: '12px' };
-    default: 
-      return { backgroundColor: '#dfe6e9', color: '#636e72', padding: '4px 12px', borderRadius: '20px', fontSize: '12px' };
+    case 'PAID': return { background: '#00b894', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' };
+    case 'PENDING_PAYMENT': return { background: '#fdcb6e', color: 'black', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' };
+    case 'REQUESTED': return { background: '#0984e3', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' };
+    case 'CANCELLED': return { background: '#636e72', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' };
+    default: return { background: '#dfe6e9', color: 'black', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' };
   }
 };
+const handleCancel = async (bookingId) => {
+  // 1. UI Confirmation
+  const confirmCancel = window.confirm("Are you sure you want to cancel this request?");
+  if (!confirmCancel) return;
+
+  try {
+    // 2. Call the Backend (Matches your PUT /api/client/bookings/{id}/cancel)
+    // We pass the clientId to verify ownership
+    await API.put(`/client/bookings/${bookingId}/cancel`, { 
+      clientId: 1 
+    });
+
+    alert("Booking successfully cancelled. The slot is now available for others.");
+    
+    // 3. Refresh the UI
+    fetchMyBookings(); 
+  } catch (err) {
+    console.error("Cancel Error:", err);
+    alert("Could not cancel: " + (err.response?.data?.error || "Server error"));
+  }
+};
+
 
 if (view === "admin") {
   return (
@@ -181,52 +233,76 @@ if (view === "admin") {
 
       <div style={styles.content}>
         
-        {/* SECTION 1: BOOKING TRACKER (State Pattern Demo) */}
-        <section style={styles.bookingTracker}>
-          <h3>📅 My Journey</h3>
-          {myBookings.length === 0 ? (
-            <p style={{ color: "#999" }}>No active requests yet. Start by consulting our AI guide!</p>
-          ) : (
-            myBookings.map(b => (
-              <div key={b.id} style={styles.bookingRow}>
-                <div>
-                  <strong style={{ color: "#2d3436" }}>{b.serviceType || "Consulting Session"}</strong> 
-                  <span style={getStatusStyle(b.state)}>
-                    {b.state}
-                  </span>
-                </div>
-                
-                {/* TRIGGER STRATEGY PATTERN: Only show Pay button if PENDING_PAYMENT */}
-                {b.state === "PENDING_PAYMENT" && (
-                  <button 
-                    onClick={() => setSelectedService(b)} 
-                    style={styles.payBtn}
-                  >
-                    💳 Pay Now
-                  </button>
-                )}
-              </div>
-            ))
-          )}
-        </section>
-
-        {/* SECTION 2: AI PERSONALIZATION (The "Brain") */}
-        <header style={styles.aiHeader}>
-          <h2>🤖 AI Career Guide</h2>
-          <p>Tell us your background and we'll match you with a consultant.</p>
-          <div style={styles.aiBox}>
-            <textarea 
-              value={profile} 
-              onChange={(e) => setProfile(e.target.value)} 
-              placeholder="Ex: I am a 3rd year CS student looking for a Java Backend internship..." 
-              style={styles.textarea}
-            />
-            <button onClick={handleAiConsult} disabled={loading} style={styles.aiBtn}>
-              {loading ? "Analyzing..." : "Get AI Recommendation"}
-            </button>
+     {/* SECTION 1: BOOKING & PAYMENT TRACKER (State + Strategy Pattern) */}
+<section style={styles.bookingTracker}>
+  <h3>📅 My Journey & History</h3>
+  {myBookings.length === 0 ? (
+    <p style={{ color: "#999" }}>No active requests yet. Start by consulting our AI guide!</p>
+  ) : (
+    myBookings.map(b => (
+      <div key={b.id} style={styles.bookingRow}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <strong style={{ color: "#2d3436" }}>{b.serviceType || "Consulting Session"}</strong> 
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+             <span style={getStatusStyle(b.state)}>{b.state}</span>
+             <span style={{ color: "#636e72", fontSize: "14px" }}>${b.basePrice}</span>
           </div>
-          {aiResponse && <div style={styles.aiResult}>{aiResponse}</div>}
-        </header>
+        </div>
+        
+        <div style={styles.actionGroup}>
+          {/* 1. CANCEL FEATURE (Required) */}
+          {b.state === "REQUESTED" && (
+            <button 
+              onClick={() => handleCancel(b.id)} 
+              style={styles.cancelBtn}
+            >
+              🚫 Cancel
+            </button>
+          )}
+
+          {/* 2. TRIGGER STRATEGY PATTERN (Required) */}
+          {b.state === "PENDING_PAYMENT" && (
+            <button 
+              onClick={() => setSelectedService(b)} 
+              style={styles.payBtn}
+            >
+              💳 Pay Now
+            </button>
+          )}
+
+          {/* 3. PAYMENT HISTORY (Required) */}
+          {b.state === "PAID" && (
+            <span style={{ color: "#00b894", fontWeight: "bold" }}>✅ Receipt Issued</span>
+          )}
+        </div>
+      </div>
+    ))
+  )}
+</section>
+      <header style={styles.aiHeader}>
+    <h2>🤖 AI Career Guide</h2>
+    <div style={styles.chatWindow}>
+    <div style={styles.chatThread}>
+      {chatHistory.map((msg, i) => (
+        <div key={i} style={msg.role === 'ai' ? styles.aiBubble : styles.userBubble}>
+          <strong>{msg.role === 'ai' ? "AI: " : "You: "}</strong>{msg.text}
+        </div>
+      ))}
+      {loading && <div style={styles.aiBubble}><em>Thinking...</em></div>}
+      </div>
+    
+    <div style={styles.inputGroup}>
+      <input 
+        value={profile} 
+        onChange={(e) => setProfile(e.target.value)} 
+        onKeyPress={(e) => e.key === 'Enter' && handleAiConsult()}
+        placeholder="Ask about booking, payments, or your career..." 
+        style={styles.chatInput}
+      />
+      <button onClick={handleAiConsult} style={styles.sendBtn}>Send</button>
+    </div>
+  </div>
+</header>
 
         {/* SECTION 3: SERVICE CATALOG (The Products) */}
         <section style={styles.serviceSection}>
@@ -263,6 +339,28 @@ if (view === "admin") {
              </div>
           </div>
         )}
+        {selectedService && (
+  <div style={styles.modalOverlay}>
+    <div style={styles.modal}>
+      <h3>💳 Checkout: {selectedService.serviceType}</h3>
+      <p>Amount Due: <strong>${selectedService.basePrice}</strong></p>
+      
+      <label style={{display: 'block', marginBottom: '10px'}}>Select Payment Method:</label>
+      <select 
+        style={styles.select} 
+        onChange={(e) => setPaymentMethod(e.target.value)}
+      >
+        <option value="CREDIT_CARD">Visa/Mastercard (**** 4242)</option>
+        <option value="PAYPAL">PayPal (User: {profile || "parham@yorku.ca"})</option>
+      </select>
+
+      <div style={{marginTop: '20px', display: 'flex', gap: '10px'}}>
+        <button onClick={handleFinalPayment} style={styles.confirmBtn}>Confirm Payment</button>
+        <button onClick={() => setSelectedService(null)} style={styles.cancelBtn}>Close</button>
+      </div>
+    </div>
+  </div>
+)}
       </div>
     </div>
   );
@@ -298,6 +396,79 @@ const styles = {
   bookingRow: { borderBottom: "1px solid #eee", padding: "15px 0", display: "flex", justifyContent: "space-between", alignItems: "center" },
   statusBadge: { marginLeft: "15px", padding: "4px 12px", borderRadius: "20px", fontSize: "12px", textTransform: "uppercase" },
   payBtn: { background: "#00b894", color: "white", border: "none", padding: "8px 20px", borderRadius: "8px", cursor: "pointer", fontWeight: "bold", transition: "0.3s" },
+  chatWindow: {
+    background: "#f8f9fa",
+    borderRadius: "12px",
+    padding: "20px",
+    border: "1px solid #e9ecef",
+    display: "flex",
+    flexDirection: "column",
+    height: "400px"
+  },
+  chatThread: {
+    flex: 1,
+    overflowY: "auto",
+    marginBottom: "15px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px"
+  },
+  aiBubble: {
+    alignSelf: "flex-start",
+    background: "#ffffff",
+    padding: "10px 15px",
+    borderRadius: "15px 15px 15px 0",
+    maxWidth: "80%",
+    boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
+    color: "#2d3436",
+    fontSize: "14px",
+    border: "1px solid #dee2e6"
+  },
+  userBubble: {
+    alignSelf: "flex-end",
+    background: "#0984e3",
+    color: "white",
+    padding: "10px 15px",
+    borderRadius: "15px 15px 0 15px",
+    maxWidth: "80%",
+    fontSize: "14px"
+  },
+  inputGroup: { display: "flex", gap: "10px" },
+  chatInput: { flex: 1, padding: "12px", borderRadius: "8px", border: "1px solid #ddd", outline: "none" },
+  sendBtn: { background: "#0984e3", color: "white", border: "none", padding: "0 20px", borderRadius: "8px", cursor: "pointer" },
+  bookingRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "15px",
+    background: "#f9f9f9",
+    borderRadius: "10px",
+    marginBottom: "10px",
+    border: "1px solid #eee"
+  },
+  actionGroup: {
+    display: "flex",
+    gap: "10px"
+  },
+  cancelBtn: {
+    background: "#ff7675",
+    color: "white",
+    border: "none",
+    padding: "8px 15px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontSize: "13px"
+  },
+  payBtn: {
+    background: "#0984e3",
+    color: "white",
+    border: "none",
+    padding: "8px 15px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontSize: "13px",
+    fontWeight: "bold"
+  }
 
 };
 
