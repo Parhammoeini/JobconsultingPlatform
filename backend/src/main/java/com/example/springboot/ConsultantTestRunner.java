@@ -23,14 +23,12 @@ public class ConsultantTestRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        System.out.println("\n--- TESTING CONSULTANT & AVAILABILITY LOGIC ---");
+        System.out.println("--- TESTING CONSULTANT & AVAILABILITY LOGIC ---");
 
-        // 1. Test Consultant Registration (UC11)
         System.out.println("Step 1: Registering a new Consultant...");
-        Consultant alice = adminService.registerConsultant("Alice Java", "alice@pro.com", "Backend Architecture");
+        Consultant alice = adminService.registerConsultant("Alice Java", "alice@pro.com", "Backend Architecture", "Toronto", "Backend expert", "BSc IT", "[]");
         System.out.println("Consultant Registered with ID: " + alice.getId() + " | Status: " + alice.getStatus());
 
-        // 2. Test Admin Approval
         System.out.println("Step 2: Approving Consultant...");
         adminService.approveConsultant(alice.getId());
         System.out.println(

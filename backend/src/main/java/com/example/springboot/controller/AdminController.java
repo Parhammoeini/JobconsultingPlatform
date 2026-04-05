@@ -50,7 +50,11 @@ public class AdminController {
         String name = body.get("name");
         String email = body.get("email");
         String specialization = body.get("specialization");
-        Consultant consultant = adminService.registerConsultant(name, email, specialization);
+        String location = body.get("location");
+        String bio = body.get("bio");
+        String education = body.get("education");
+        String experiences = body.get("experiences");
+        Consultant consultant = adminService.registerConsultant(name, email, specialization, location, bio, education, experiences);
         return ResponseEntity.ok(consultant);
     }
     /**

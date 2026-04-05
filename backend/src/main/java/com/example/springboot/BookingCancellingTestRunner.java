@@ -48,9 +48,10 @@ public class BookingCancellingTestRunner implements CommandLineRunner {
         // SETUP: Register & approve a consultant, create an availability slot
         // ---------------------------------------------------------------
         System.out.println("--- SETUP: Creating an approved consultant with an availability slot ---");
-
+        
         Consultant consultant = adminService.registerConsultant(
-                "Bob Builder", "bob@consulting.com", "Career Coaching");
+                "Bob Builder", "bob@consulting.com", "Career Coaching", "Online", "Career expert", "MBA", "[]"
+        );
         adminService.approveConsultant(consultant.getId());
         System.out.println("Consultant registered & approved: " + consultant.getName()
                 + " (ID=" + consultant.getId() + ")");

@@ -1,8 +1,13 @@
 package com.example.springboot.controller;
 
+import com.example.springboot.model.AppUser;
 import com.example.springboot.model.Client;
+import com.example.springboot.model.Consultant;
 import com.example.springboot.model.LoginRequest;
+import com.example.springboot.model.RegistrationStatus;
+import com.example.springboot.repository.AppUserRepository;
 import com.example.springboot.repository.ClientRepository;
+import com.example.springboot.repository.ConsultantRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,28 +20,58 @@ public class AuthController {
     @Autowired
     private ClientRepository clientRepository;
 
+    @Autowired
+    private AppUserRepository appUserRepository;
+
+    @Autowired
+    private ConsultantRepository consultantRepository;
+
     @PostMapping("/login")
-    public ResponseEntity<String> saveUser(@RequestBody LoginRequest loginRequest) {
-        // Here we satisfy the requirement: 
-        // "if a user enters their username and passowrd it shows in the postgressql database"
-        
-        // Let's check if user with this email (username) already exists
-        // Wait, ClientRepository extends AppUserRepository which doesn't have findByEmail mapped yet.
-        // For simplicity, we just save a new Client each time, or try to iterate and check.
-        // It's just a demo endpoint to show data going to postgres.
-        
-        Client newClient = new Client();
-        newClient.setName(loginRequest.getUsername());
-        // Using username as email if needed, or appending a dummy email to avoid unique constraint issues
-        // Since email is UNIQUE constraint in AppUser, let's just make it the username
-        newClient.setEmail(loginRequest.getUsername() + "@example.com"); 
-        newClient.setPassword(loginRequest.getPassword());
-        
-        try {
-            clientRepository.save(newClient);
-            return ResponseEntity.ok("User info saved successfully to database!");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error saving user: It might already exist! " + e.getMessage());
+    public ResponseEntity<?> saveUser(@RequestBody LoginRequest loginRequest) {
+        String username = loginRequest.getUsername();
+        String password = loginRequest.getPassword();
+
+        java.util.List<AppUser> users = appUserRepository.findByName(username);
+        AppUser user = users.isEmpty() ? null : users.get(0);
+
+        if (user == null) {
+            // Create a new Client account with a unique username
+            Client newClient = new Client();
+            newClient.setName(username);
+            // Use a derived email to avoid collisions with consultant applications
+            newClient.setEmail(username + "@example.com");
+            newClient.setPassword(password);
+            user = clientRepository.save(newClient);
+        } else if (user.getPassword() != null && !user.getPassword().equals(password)) {
+            return ResponseEntity.status(401).body(java.util.Map.of("error", "Invalid username or password"));
+        } else if (user.getPassword() == null) {
+            user.setPassword(password);
+            appUserRepository.save(user);
         }
+
+        // Resolve consultant status by username or email
+        java.util.List<Consultant> consultants = consultantRepository.findByName(username);
+        if (consultants.isEmpty()) {
+            consultants = consultantRepository.findByEmail(username);
+        }
+        Consultant consultant = consultants.isEmpty() ? null : consultants.get(0);
+
+        if (consultant != null && consultant.getStatus() == RegistrationStatus.APPROVED) {
+            return ResponseEntity.ok(java.util.Map.of(
+                    "role", "CONSULTANT",
+                    "status", "APPROVED",
+                    "userId", user.getId(),
+                    "username", username
+            ));
+        }
+
+        String consultantStatus = consultant == null ? "NONE" : consultant.getStatus().name();
+
+        return ResponseEntity.ok(java.util.Map.of(
+                "role", "CLIENT",
+                "status", consultantStatus,
+                "userId", user.getId(),
+                "username", username
+        ));
     }
 }

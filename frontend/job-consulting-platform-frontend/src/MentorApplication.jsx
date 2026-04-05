@@ -6,6 +6,10 @@ const MentorApplication = ({ setView }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    location: '',
+    bio: '',
+    education: '',
+    experiences: [],
     specialization: ''
   });
   const [loading, setLoading] = useState(false);
@@ -19,8 +23,12 @@ const MentorApplication = ({ setView }) => {
 
   const handleNext = () => {
     // Basic validation
-    if (step === 1 && (!formData.name || !formData.email)) {
-      alert("Please fill out all fields.");
+    if (step === 1 && (!formData.name || !formData.email || !formData.location || !formData.bio)) {
+      alert("Please fill out all basic fields.");
+      return;
+    }
+    if (step === 2 && (!formData.education)) {
+      alert("Please provide your education details.");
       return;
     }
     setStep(prev => prev + 1);
@@ -28,6 +36,26 @@ const MentorApplication = ({ setView }) => {
 
   const handleBack = () => {
     setStep(prev => prev - 1);
+  };
+
+  const handleAddExperience = () => {
+    setFormData(prev => ({
+      ...prev,
+      experiences: [...prev.experiences, { title: '', duration: '', description: '' }]
+    }));
+  };
+
+  const handleExperienceChange = (index, field, value) => {
+    const newExps = [...formData.experiences];
+    newExps[index][field] = value;
+    setFormData(prev => ({ ...prev, experiences: newExps }));
+  };
+
+  const handleRemoveExperience = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      experiences: prev.experiences.filter((_, i) => i !== index)
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -39,7 +67,11 @@ const MentorApplication = ({ setView }) => {
     setLoading(true);
     setError(null);
     try {
-      await registerConsultant(formData);
+      const payload = {
+        ...formData,
+        experiences: JSON.stringify(formData.experiences)
+      };
+      await registerConsultant(payload);
       setSuccess(true);
     } catch (err) {
       setError(err.response?.data?.message || err.message || "Failed to submit application");
@@ -83,6 +115,9 @@ const MentorApplication = ({ setView }) => {
         <div style={{ flex: 1, textAlign: 'center', fontWeight: step === 2 ? '700' : '400', color: step === 2 ? '#0984e3' : '#b2bec3', borderBottom: step === 2 ? '3px solid #0984e3' : 'none', paddingBottom: '10px', transition: 'all 0.3s' }}>
           Step 2: Experience
         </div>
+        <div style={{ flex: 1, textAlign: 'center', fontWeight: step === 3 ? '700' : '400', color: step === 3 ? '#0984e3' : '#b2bec3', borderBottom: step === 3 ? '3px solid #0984e3' : 'none', paddingBottom: '10px', transition: 'all 0.3s' }}>
+          Step 3: Specialization
+        </div>
       </div>
 
       {error && (
@@ -91,7 +126,7 @@ const MentorApplication = ({ setView }) => {
         </div>
       )}
 
-      <form onSubmit={step === 2 ? handleSubmit : (e) => { e.preventDefault(); handleNext(); }} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <form onSubmit={step === 3 ? handleSubmit : (e) => { e.preventDefault(); handleNext(); }} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         
         {step === 1 && (
           <>
@@ -119,10 +154,83 @@ const MentorApplication = ({ setView }) => {
                 style={{ padding: '12px', borderRadius: '4px', border: '1px solid #b2bec3', fontSize: '1rem' }}
               />
             </label>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '8px', color: '#2d3436', fontWeight: '500' }}>
+              Location
+              <input 
+                type="text" 
+                name="location" 
+                value={formData.location} 
+                onChange={handleChange} 
+                required 
+                placeholder="e.g. New York, USA"
+                style={{ padding: '12px', borderRadius: '4px', border: '1px solid #b2bec3', fontSize: '1rem' }}
+              />
+            </label>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '8px', color: '#2d3436', fontWeight: '500' }}>
+              About Yourself
+              <textarea 
+                name="bio" 
+                value={formData.bio} 
+                onChange={handleChange} 
+                required 
+                rows="3"
+                placeholder="A short summary of who you are..."
+                style={{ padding: '12px', borderRadius: '4px', border: '1px solid #b2bec3', fontSize: '1rem', resize: 'vertical' }}
+              />
+            </label>
           </>
         )}
 
         {step === 2 && (
+          <>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '8px', color: '#2d3436', fontWeight: '500' }}>
+              Education
+              <input 
+                type="text" 
+                name="education" 
+                value={formData.education} 
+                onChange={handleChange} 
+                required 
+                placeholder="e.g. BSc Computer Science, Stanford University"
+                style={{ padding: '12px', borderRadius: '4px', border: '1px solid #b2bec3', fontSize: '1rem' }}
+              />
+            </label>
+            
+            <div style={{ marginTop: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <h3 style={{ color: '#2d3436', margin: 0 }}>Work Experience</h3>
+                <span style={{ fontSize: '0.85rem', color: '#636e72', fontWeight: 'bold' }}>Total: {formData.experiences.length}</span>
+              </div>
+              
+              {formData.experiences.map((exp, index) => (
+                <div key={index} style={{ padding: '15px', border: '1px solid #dfe6e9', borderRadius: '6px', marginBottom: '15px', backgroundColor: '#fdfdfd' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <strong style={{ fontSize: '0.9rem', color: '#636e72' }}>Experience #{index + 1}</strong>
+                    <button type="button" onClick={() => handleRemoveExperience(index)} style={{ color: '#d63031', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.85rem', padding: 0 }}>Remove</button>
+                  </div>
+
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '10px', fontSize: '0.9rem', fontWeight: '500' }}>
+                    Job Title
+                    <input type="text" value={exp.title} onChange={(e) => handleExperienceChange(index, 'title', e.target.value)} required style={{ padding: '8px', borderRadius: '4px', border: '1px solid #b2bec3' }} />
+                  </label>
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '10px', fontSize: '0.9rem', fontWeight: '500' }}>
+                    Duration
+                    <input type="text" placeholder="e.g. 2 years (2020 - 2022)" value={exp.duration} onChange={(e) => handleExperienceChange(index, 'duration', e.target.value)} required style={{ padding: '8px', borderRadius: '4px', border: '1px solid #b2bec3' }} />
+                  </label>
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '0.9rem', fontWeight: '500' }}>
+                    Description
+                    <textarea rows="2" value={exp.description} onChange={(e) => handleExperienceChange(index, 'description', e.target.value)} required style={{ padding: '8px', borderRadius: '4px', border: '1px solid #b2bec3', resize: 'vertical' }} />
+                  </label>
+                </div>
+              ))}
+              <button type="button" onClick={handleAddExperience} style={{ padding: '8px 16px', background: '#dfe6e9', border: 'none', borderRadius: '4px', cursor: 'pointer', color: '#2d3436', fontWeight: 'bold' }}>
+                + Add Experience
+              </button>
+            </div>
+          </>
+        )}
+
+        {step === 3 && (
           <>
             <label style={{ display: 'flex', flexDirection: 'column', gap: '8px', color: '#2d3436', fontWeight: '500' }}>
               Area of Specialization
@@ -151,7 +259,7 @@ const MentorApplication = ({ setView }) => {
             <div /> // Spacer
           )}
           
-          {step === 1 ? (
+          {step < 3 ? (
             <button type="submit" style={{ padding: '12px 24px', backgroundColor: '#0984e3', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem' }}>
               Next Step
             </button>

@@ -196,9 +196,49 @@ public class ClientController {
     public ResponseEntity<List<Consultant>> getAllConsultants() {
     return ResponseEntity.ok(catalogService.browseAllConsultants());
 }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.example.springboot.repository.ConsultantRepository consultantRepository;
+
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody Map<String, String> credentials) {
-    // Logic to save user or verify
-    return ResponseEntity.ok("User info saved successfully!");
-}
+    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> credentials) {
+        String username = credentials.get("username");
+        String password = credentials.get("password");
+
+        // Simple lookup: check if a consultant exists with this email/username
+        // We assume the user logs in using the email they signed up with.
+        java.util.List<Consultant> consultants = consultantRepository.findByEmail(username);
+        if (consultants.isEmpty()) {
+            // Not found as consultant, treat as standard client
+            return ResponseEntity.ok(Map.<String, Object>of(
+                "role", "CLIENT", 
+                "message", "Login successful"
+            ));
+        }
+
+        Consultant consultant = consultants.get(0);
+        if (consultant.getPassword() != null && !consultant.getPassword().equals(password)) {
+             return ResponseEntity.status(401).body(Map.<String, Object>of("error", "Invalid password"));
+        }
+        // Update password if null (first login after registration or just auto-syncing)
+        if (consultant.getPassword() == null) {
+            consultant.setPassword(password);
+            consultantRepository.save(consultant);
+        }
+        if (consultant.getStatus() == RegistrationStatus.APPROVED) {
+            return ResponseEntity.ok(Map.<String, Object>of(
+                "role", "CONSULTANT", 
+                "status", "APPROVED", 
+                "message", "Login successful",
+                "id", consultant.getId()
+            ));
+        } else {
+            return ResponseEntity.ok(Map.<String, Object>of(
+                "role", "CLIENT", 
+                "status", consultant.getStatus().name(), 
+                "message", "Login successful",
+                "id", consultant.getId()
+            ));
+        }
+    }
 }

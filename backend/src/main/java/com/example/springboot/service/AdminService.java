@@ -28,15 +28,22 @@ public class AdminService {
     // UC11 – Approve Consultant Registration (Database Driven)
     // -----------------------------------------------------------------------
 
-    public Consultant registerConsultant(String name, String email, String specialization) {
+    public Consultant registerConsultant(String name, String email, String specialization, String location, String bio, String education, String experiences) {
         // Prevent duplicate email violation by checking if the user already exists
-        return consultantRepository.findByEmail(email).orElseGet(() -> {
-            // ID is null because JPA GenerationType.IDENTITY will auto-assign it
-            Consultant consultant = new Consultant(null, name, email, specialization, 0.0);
-            Consultant saved = consultantRepository.save(consultant);
-            System.out.println("New consultant registered (PENDING): " + saved);
-            return saved;
-        });
+        java.util.List<Consultant> existing = consultantRepository.findByEmail(email);
+        if (!existing.isEmpty()) {
+            return existing.get(0);
+        }
+        
+        // ID is null because JPA GenerationType.IDENTITY will auto-assign it
+        Consultant consultant = new Consultant(null, name, email, specialization, 0.0);
+        consultant.setLocation(location);
+        consultant.setBio(bio);
+        consultant.setEducation(education);
+        consultant.setExperiences(experiences);
+        Consultant saved = consultantRepository.save(consultant);
+        System.out.println("New consultant registered (PENDING): " + saved);
+        return saved;
     }
 
     public Consultant approveConsultant(Long consultantId) {

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import Payment from "./payment"; 
 import BecomeMentor from "./BecomeMentor";
 import MentorApplication from "./MentorApplication";
+import ConsultantDashboard from "./ConsultantDashboard";
 import API, { 
   requestBooking,
   getMyBookings,
@@ -29,6 +30,7 @@ function App() {
   const [selectedService, setSelectedService] = useState(null);
   const [loading, setLoading] = useState(false);
   const [myBookings, setMyBookings] = useState([]);
+  const [loginInfo, setLoginInfo] = useState(null);
 
   // Load services immediately after login
   useEffect(() => {
@@ -51,10 +53,16 @@ function App() {
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     try {
-      await loginAndSave(credentials);
-      setView("dashboard"); 
+      const res = await loginAndSave(credentials);
+      const info = res.data;
+      setLoginInfo(info);
+      if (info.role === "CONSULTANT" && info.status === "APPROVED") {
+        setView("consultant");
+      } else {
+        setView("dashboard");
+      }
     } catch (err) {
-      alert("Login failed: " + (err.response?.data || err.message));
+      alert("Login failed: " + (err.response?.data?.error || err.response?.data || err.message));
     }
   };
 
@@ -147,6 +155,10 @@ if (view === "admin") {
         </div>
       </div>
     );
+  }
+
+  if (view === "consultant") {
+    return <ConsultantDashboard setView={setView} loginInfo={loginInfo} />;
   }
 
   if (view === "mentor-benefits") {

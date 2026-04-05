@@ -58,6 +58,16 @@ public class Consultant extends AppUser {
     
     private Double hourlyRate;
 
+    private String location;
+    
+    @Column(length = 2000)
+    private String bio;
+    
+    private String education;
+    
+    @Column(length = 4000)
+    private String experiences;
+
     @OneToMany(mappedBy = "consultant", cascade = CascadeType.ALL)
     private List<Availability> availabilities = new ArrayList<>();
 
@@ -78,6 +88,18 @@ public class Consultant extends AppUser {
     public String getSpecialization() { return specialization; }
     public RegistrationStatus getStatus() { return status; }
     public Double getHourlyRate(){ return hourlyRate; }
+
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
+
+    public String getBio() { return bio; }
+    public void setBio(String bio) { this.bio = bio; }
+
+    public String getEducation() { return education; }
+    public void setEducation(String education) { this.education = education; }
+
+    public String getExperiences() { return experiences; }
+    public void setExperiences(String experiences) { this.experiences = experiences; }
 
     public void setStatus(RegistrationStatus status) { this.status = status; }
 
