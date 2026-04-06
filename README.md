@@ -162,4 +162,11 @@ Pivot: "I have 5 years of marketing experience but want to move into Tech."
 
 Process: "How does the booking and payment process work?"
 
+<img width="1433" height="729" alt="Screenshot 2026-04-05 at 11 35 30 PM" src="https://github.com/user-attachments/assets/b3949e23-99fe-4a21-b65b-d61b5b03c6fc" />
+<img width="1433" height="729" alt="Screenshot 2026-04-05 at 11 35 43 PM" src="https://github.com/user-attachments/assets/2fcf9def-e32a-4d1c-8d50-47e9f3f4c4c4" />
+<img width="1433" height="729" alt="Screenshot 2026-04-05 at 11 41 21 PM" src="https://github.com/user-attachments/assets/0005f5ed-66a6-4167-97e1-2b5832cf2ae8" />
+<img width="1433" height="729" alt="Screenshot 2026-04-05 at 11 42 05 PM" src="https://github.com/user-attachments/assets/6e9077cd-2bf8-4ce8-8628-e0cb59ffe6b6" />
+<img width="1433" height="729" alt="Screenshot 2026-04-05 at 11 42 26 PM" src="https://github.com/user-attachments/assets/bd000a7b-1463-4ff5-9898-8d63e9f6417f" />
+
+
 
