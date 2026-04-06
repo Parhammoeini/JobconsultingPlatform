@@ -1,5 +1,5 @@
 project participants: samantha murillo carmona: 221622816, Ephratah Aguda: 220803490 ,Jonathan Quijano: 220510855 , Parham Moeini: 221767884
-
+## PHASE 1:
 
 ```text
 src/main/java/com/example/springboot/
@@ -109,6 +109,6 @@ src/main/java/com/example/springboot/
 └── controller/
     └── ClientController.java                <-- [UC1/UC2/UC3] REST API endpoints under /api/client
 ```
-
+## PHASE 2
 
 
