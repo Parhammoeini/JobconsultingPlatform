@@ -6,6 +6,7 @@ const ConsultantDashboard = ({ setView, loginInfo }) => {
   const [bookings, setBookings] = useState([]);
   const [availabilities, setAvailabilities] = useState([]);
   const [newSlot, setNewSlot] = useState({ start: "", end: "" });
+  // Ensure it matches the field name from your Java Booking entity
 
   // Inside useEffect in ConsultantDashboard.jsx
 /*useEffect(() => {
@@ -23,7 +24,7 @@ const ConsultantDashboard = ({ setView, loginInfo }) => {
 }, [loginInfo]);*/
 useEffect(() => {
   // Use the dynamic ID from login, fallback to 46 for testing
-  const id = loginInfo?.userId || 46;
+  const id = loginInfo?.userId || 99;
 
   // 1. Fetch Bookings using the helper (Matches /client/bookings)
   getConsultantBookings(id)

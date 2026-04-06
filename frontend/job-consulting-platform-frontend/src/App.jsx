@@ -61,7 +61,7 @@ const fetchMyBookings = async () => {
 const fetchServices = async () => {
   try {
     // If your teammate added /api to all controllers:
-    const res = await API.get("/api/services"); 
+    const res = await API.get("/client/services"); 
     setServices(res.data || []);
   } catch (err) {
     console.error("Fetch services failed", err);
@@ -116,38 +116,58 @@ const handleLoginSubmit = async (e) => {
   ]);
 // AI
 const handleAiConsult = async () => {
-  if (!profile.trim()) return;
+  // Use a local variable for the message so we don't rely on 'profile' 
+  // after it might have been cleared by other parts of the app.
+  const userQuery = profile.trim();
+  if (!userQuery) return;
 
-  // 1. Add User Message to history
-  const newUserMsg = { role: 'user', text: profile };
+  // 1. UI Updates
+  const newUserMsg = { role: 'user', text: userQuery };
   setChatHistory(prev => [...prev, newUserMsg]);
   setLoading(true);
 
-  const input = profile.toLowerCase();
+  // 2. Normalize input for matching
+  const lowerInput = userQuery.toLowerCase();
   let aiResponseText = "";
 
-  // 2. Intent-Based Dialogue Logic (Per Assignment Requirements)
-  if (input.includes("how do i book") || input.includes("process")) {
-    aiResponseText = "Booking is easy! 1️⃣ Browse the 'Available Services' below. 2️⃣ Click 'Request Appointment'. 3️⃣ Once a consultant approves, you'll see a 'Pay Now' button in your 'My Journey' tracker.";
-  } else if (input.includes("payment") || input.includes("pay")) {
-    aiResponseText = "We accept Credit Cards and PayPal. We use a 'Strategy Design Pattern' to securely process your chosen method at checkout.";
-  } else if (input.includes("cancel")) {
-    aiResponseText = "You can cancel any booking in the 'REQUESTED' state. Once paid, the status moves to 'PAID' and the slot is locked.";
-  } else if (input.includes("services") || input.includes("what types")) {
-    aiResponseText = "We offer 6 core services: Resume Review, Mock Interviews, Career Strategy, LinkedIn Optimization, Salary Negotiation, and general Coaching.";
-  } else {
-    // Fallback to your existing AI API for personalized recommendations
-    try {
-      const res = await suggestServices(profile);
-      aiResponseText = res.data.recommendation;
-    } catch {
-      aiResponseText = "I'm here to help! Try asking: 'How do I book?' or 'What services do you have?'";
+  try {
+    // FAQ / Intent Logic
+    if (lowerInput.includes("how do i book") || lowerInput.includes("process")) {
+      aiResponseText = "Booking is simple: 1️⃣ Browse 'Available Services'. 2️⃣ Click 'Request'. 3️⃣ Wait for Consultant Approval. 4️⃣ Once 'APPROVED', click 'Pay Now' in your Journey Tracker.";
+    } 
+    else if (lowerInput.includes("payment") || lowerInput.includes("pay") || lowerInput.includes("cost")) {
+      aiResponseText = "We support multiple payment methods. Our backend uses the **Strategy Design Pattern** to toggle between Credit Card and PayPal processing seamlessly.";
+    } 
+    else if (lowerInput.includes("status") || lowerInput.includes("where is my")) {
+      aiResponseText = "Check your 'My Journey' section! Your request moves from **REQUESTED** ➔ **APPROVED** ➔ **PAID**.";
     }
+    else if (lowerInput.includes("services") || lowerInput.includes("expert") || lowerInput.includes("help")) {
+      aiResponseText = "We offer 6 specialized tracks: **Resume Review, Mock Interviews, Career Strategy, LinkedIn Optimization, Salary Coaching, and General Mentorship**.";
+    }
+
+    // Smart Bio / AI Logic
+    else if (lowerInput.length > 15 || lowerInput.includes("i am") || lowerInput.includes("background")) {
+      // First, check for CS student keywords locally for "Instant Smart" feel
+      if (lowerInput.includes("cs") || lowerInput.includes("computer science")) {
+        aiResponseText = "🧠 **AI Analysis:** Since you are a CS student, I highly recommend a **Mock Interview** to prep for technical rounds or a **Resume Review** for your projects.";
+      } else {
+        // Otherwise, hit the real AI backend
+        const res = await suggestServices({ bio: userQuery }); 
+        aiResponseText = `🧠 **AI Analysis:** I recommend **${res.data.recommendedService || "Career Strategy"}**. \n\nReason: ${res.data.reason || "This aligns with your professional background."}`;
+      }
+    }
+    else {
+      aiResponseText = "I'm your Career Assistant! Ask me about 'booking', 'payment', or tell me your background for a recommendation.";
+    }
+
+  } catch (err) {
+    console.error("Chat Error:", err);
+    aiResponseText = "I'm currently in offline mode, but based on your query, I'd start with a **Resume Review**!";
   }
 
-  // 3. Add AI Response to history
+  // 3. Final UI Sync
   setChatHistory(prev => [...prev, { role: 'ai', text: aiResponseText }]);
-  setProfile(""); // Clear input
+  setProfile(""); // Clear the text box
   setLoading(false);
 };
 /*
