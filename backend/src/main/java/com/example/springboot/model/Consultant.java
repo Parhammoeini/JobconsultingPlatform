@@ -1,4 +1,3 @@
-//<<<<<<< HEAD
 //package com.example.springboot.model;
 //
 //
@@ -44,27 +43,14 @@
 
 package com.example.springboot.model;
 
+import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 
 @Entity
-public class Consultant {
+public class Consultant extends AppUser {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    private String name;
-    private String email;
     private String specialization;
 
     @Enumerated(EnumType.STRING) // Tells JPA to store "PENDING" instead of 0
@@ -72,7 +58,17 @@ public class Consultant {
     
     private Double hourlyRate;
 
-    @OneToMany(mappedBy = "consultant", cascade = CascadeType.ALL) // Changed "mentor" to "consultant" to match Availability.java
+    private String location;
+    
+    @Column(length = 2000)
+    private String bio;
+    
+    private String education;
+    
+    @Column(length = 4000)
+    private String experiences;
+
+    @OneToMany(mappedBy = "consultant", cascade = CascadeType.ALL)
     private List<Availability> availabilities = new ArrayList<>();
 
     // 1. MANDATORY: Default Constructor for JPA
@@ -80,22 +76,30 @@ public class Consultant {
 
     // 2. Your existing Constructor
     public Consultant(Long id, String name, String email, String specialization, Double hourlyRate) {
-        this.id = id;
-        this.name = name;
-        this.email = email;
+        this.setId(id);
+        this.setName(name);
+        this.setEmail(email);
         this.specialization = specialization;
         this.status = RegistrationStatus.PENDING;
         this.hourlyRate = hourlyRate;
     }
 
     // Getters and Setters
-    public Long getId() { return id; }
-    public String getName() { return name; }
-    public String getEmail() { return email; }
     public String getSpecialization() { return specialization; }
     public RegistrationStatus getStatus() { return status; }
     public Double getHourlyRate(){ return hourlyRate; }
-    public List<Availability> getAvailabilities() { return availabilities; }
+
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
+
+    public String getBio() { return bio; }
+    public void setBio(String bio) { this.bio = bio; }
+
+    public String getEducation() { return education; }
+    public void setEducation(String education) { this.education = education; }
+
+    public String getExperiences() { return experiences; }
+    public void setExperiences(String experiences) { this.experiences = experiences; }
 
     public void setStatus(RegistrationStatus status) { this.status = status; }
 
@@ -112,7 +116,9 @@ public class Consultant {
 
     @Override
     public String toString() {
-        return "Consultant{id=" + id + ", name='" + name + "', email='" + email +
+        return "Consultant{id=" + getId() + ", name='" + getName() + "', email='" + getEmail() +
                "', specialization='" + specialization + "', status=" + status + "}";
     }
+
+    
 }

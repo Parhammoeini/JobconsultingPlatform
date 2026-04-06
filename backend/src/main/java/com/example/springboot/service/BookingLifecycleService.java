@@ -78,6 +78,17 @@ public class BookingLifecycleService {
     }
 
     /**
+     * An active booking is one that is not in a terminal state.
+     * Terminal states are REJECTED, CANCELLED, and COMPLETED.
+     */
+    public boolean isActive(String currentStateLabel) {
+        BookingState current = BookingState.fromLabel(currentStateLabel);
+        return current != BookingState.REJECTED &&
+               current != BookingState.CANCELLED &&
+               current != BookingState.COMPLETED;
+    }
+
+    /**
      * Returns the set of states reachable from the given state.
      */
     public Set<BookingState> allowedTransitions(String currentStateLabel) {

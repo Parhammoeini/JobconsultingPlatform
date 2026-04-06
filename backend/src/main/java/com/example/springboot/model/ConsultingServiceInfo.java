@@ -1,19 +1,34 @@
 package com.example.springboot.model;
 
+import jakarta.persistence.*;
+
 /**
  * Represents a consulting service that clients can browse (UC1).
  *
  * Each service has a type (e.g. "Resume Review"), a duration in minutes,
  * and a base price.  A consultant may offer one or more of these.
  */
+@Entity
 public class ConsultingServiceInfo {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String serviceType;
     private int durationMinutes;
     private double basePrice;
     private String description;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "consultant_id")
+    private Consultant consultant;
+
+    // We can keep these temporary transient fields if needed for DTO compatibility or mapping, 
+    // but ideally we extract info via the Consultant mapping now.
+    @Transient
     private Long consultantId;
+    @Transient
     private String consultantName;
 
     public ConsultingServiceInfo() {}
@@ -23,15 +38,17 @@ public class ConsultingServiceInfo {
                                  int durationMinutes,
                                  double basePrice,
                                  String description,
-                                 Long consultantId,
-                                 String consultantName) {
+                                 Consultant consultant) {
         this.id = id;
         this.serviceType = serviceType;
         this.durationMinutes = durationMinutes;
         this.basePrice = basePrice;
         this.description = description;
-        this.consultantId = consultantId;
-        this.consultantName = consultantName;
+        this.consultant = consultant;
+        if(consultant != null) {
+            this.consultantId = consultant.getId();
+            this.consultantName = consultant.getName();
+        }
     }
 
     // ---- Getters ----
@@ -41,7 +58,10 @@ public class ConsultingServiceInfo {
     public double getBasePrice() { return basePrice; }
     public String getDescription() { return description; }
     public Long getConsultantId() { return consultantId; }
-    public String getConsultantName() { return consultantName; }
+    public String getConsultantName() { return consultant != null ? consultant.getName() : consultantName; }
+
+    public Consultant getConsultant() { return consultant; }
+    public void setConsultant(Consultant consultant) { this.consultant = consultant; }
 
     // ---- Setters ----
     public void setId(Long id) { this.id = id; }

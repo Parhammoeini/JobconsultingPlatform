@@ -1,4 +1,4 @@
-package com.example.springboot.runner;
+package com.example.springboot;
 
 import com.example.springboot.model.*;
 import com.example.springboot.service.*;
@@ -11,9 +11,9 @@ import java.util.List;
 
 /**
  * Integration tester for the client-facing use-cases:
- *   UC1 – Browse Consulting Services
- *   UC2 – Request a Booking
- *   UC3 – Cancel a Booking
+ * UC1 – Browse Consulting Services
+ * UC2 – Request a Booking
+ * UC3 – Cancel a Booking
  */
 @Component
 @Order(2) // run after ConsultantTestRunner so seed data exists
@@ -26,10 +26,10 @@ public class BookingCancellingTestRunner implements CommandLineRunner {
     private final BookingLifecycleService lifecycleService;
 
     public BookingCancellingTestRunner(AdminService adminService,
-                                      AvailabilityService availabilityService,
-                                      ConsultingServiceCatalogService catalogService,
-                                      ClientBookingService clientBookingService,
-                                      BookingLifecycleService lifecycleService) {
+            AvailabilityService availabilityService,
+            ConsultingServiceCatalogService catalogService,
+            ClientBookingService clientBookingService,
+            BookingLifecycleService lifecycleService) {
         this.adminService = adminService;
         this.availabilityService = availabilityService;
         this.catalogService = catalogService;
@@ -48,9 +48,10 @@ public class BookingCancellingTestRunner implements CommandLineRunner {
         // SETUP: Register & approve a consultant, create an availability slot
         // ---------------------------------------------------------------
         System.out.println("--- SETUP: Creating an approved consultant with an availability slot ---");
-
+        
         Consultant consultant = adminService.registerConsultant(
-                "Bob Builder", "bob@consulting.com", "Career Coaching");
+                "Bob Builder", "bob@consulting.com", "Career Coaching", "Online", "Career expert", "MBA", "[]"
+        );
         adminService.approveConsultant(consultant.getId());
         System.out.println("Consultant registered & approved: " + consultant.getName()
                 + " (ID=" + consultant.getId() + ")");
@@ -97,9 +98,12 @@ public class BookingCancellingTestRunner implements CommandLineRunner {
 
         Long clientId = 100L; // simulated client id
 
-        // We need the availability slot id. The slot was just created for the consultant.
-        // Grab the first AVAILABLE slot from the repository via browsing all bookings is tricky
-        // because AvailabilityRepository is not directly exposed here. Instead we rely on the
+        // We need the availability slot id. The slot was just created for the
+        // consultant.
+        // Grab the first AVAILABLE slot from the repository via browsing all bookings
+        // is tricky
+        // because AvailabilityRepository is not directly exposed here. Instead we rely
+        // on the
         // service layer: try creating a booking with slotId = 1 (the earliest slot).
         // We'll attempt with likely slot ids.
 
@@ -108,8 +112,8 @@ public class BookingCancellingTestRunner implements CommandLineRunner {
             BookingRequestDTO request = new BookingRequestDTO(
                     clientId,
                     consultant.getId(),
-                    1L,                   // first availability slot id
-                    newService.getId()    // the service we just added
+                    1L, // first availability slot id
+                    newService.getId() // the service we just added
             );
             booking = clientBookingService.requestBooking(request);
             System.out.println("Booking created: " + booking);
@@ -125,8 +129,7 @@ public class BookingCancellingTestRunner implements CommandLineRunner {
                         clientId,
                         consultant.getId(),
                         2L,
-                        newService.getId()
-                );
+                        newService.getId());
                 booking = clientBookingService.requestBooking(request2);
                 System.out.println("Booking created on retry: " + booking);
                 System.out.println("UC2 PASSED ✓");

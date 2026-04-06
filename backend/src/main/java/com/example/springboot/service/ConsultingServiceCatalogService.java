@@ -46,6 +46,9 @@ public class ConsultingServiceCatalogService {
                 .filter(s -> isConsultantApproved(s.getConsultantId()))
                 .collect(Collectors.toList());
     }
+    public List<Consultant> browseAllConsultants() {
+        return consultantRepository.findAll();
+    }
 
     /**
      * Filter services by type keyword (case-insensitive).
@@ -84,9 +87,8 @@ public class ConsultingServiceCatalogService {
                                             double basePrice,
                                             String description,
                                             Long consultantId) {
-        String consultantName = consultantRepository.findById(consultantId)
-                .map(Consultant::getName)
-                .orElse("Unknown");
+        Consultant consultant = consultantRepository.findById(consultantId)
+                .orElseThrow(() -> new IllegalArgumentException("Consultant not found with id: " + consultantId));
 
         ConsultingServiceInfo info = new ConsultingServiceInfo(
                 idGenerator.getAndIncrement(),
@@ -94,8 +96,7 @@ public class ConsultingServiceCatalogService {
                 durationMinutes,
                 basePrice,
                 description,
-                consultantId,
-                consultantName
+                consultant
         );
 
         catalog.add(info);
@@ -118,13 +119,26 @@ public class ConsultingServiceCatalogService {
      * Pre-populates the catalogue so that UC1 works out-of-the-box.
      */
     private void loadSeedData() {
+        // Create dummy consultants for seed data since we can't guarantee IDs
+        Consultant seedConsultantA = new Consultant();
+        seedConsultantA.setId(1L);
+        seedConsultantA.setName("Seed Consultant A");
+
+        Consultant seedConsultantB = new Consultant();
+        seedConsultantB.setId(2L);
+        seedConsultantB.setName("Seed Consultant B");
+
+        Consultant seedConsultantC = new Consultant();
+        seedConsultantC.setId(3L);
+        seedConsultantC.setName("Seed Consultant C");
+
         catalog.add(new ConsultingServiceInfo(
                 idGenerator.getAndIncrement(),
                 "Resume Review",
                 30,
                 49.99,
                 "Professional review and feedback on your resume",
-                1L, "Seed Consultant A"
+                seedConsultantA
         ));
         catalog.add(new ConsultingServiceInfo(
                 idGenerator.getAndIncrement(),
@@ -132,7 +146,7 @@ public class ConsultingServiceCatalogService {
                 60,
                 89.99,
                 "One-on-one mock interview with industry expert",
-                1L, "Seed Consultant A"
+                seedConsultantA
         ));
         catalog.add(new ConsultingServiceInfo(
                 idGenerator.getAndIncrement(),
@@ -140,7 +154,7 @@ public class ConsultingServiceCatalogService {
                 45,
                 74.99,
                 "Personalised career roadmap and goal setting",
-                2L, "Seed Consultant B"
+                seedConsultantB
         ));
         catalog.add(new ConsultingServiceInfo(
                 idGenerator.getAndIncrement(),
@@ -148,7 +162,7 @@ public class ConsultingServiceCatalogService {
                 30,
                 39.99,
                 "Optimise your LinkedIn presence for recruiters",
-                2L, "Seed Consultant B"
+                seedConsultantB
         ));
         catalog.add(new ConsultingServiceInfo(
                 idGenerator.getAndIncrement(),
@@ -156,7 +170,7 @@ public class ConsultingServiceCatalogService {
                 60,
                 99.99,
                 "Expert guidance for negotiating job offers",
-                3L, "Seed Consultant C"
+                seedConsultantC
         ));
 
         System.out.println("Consulting service catalogue loaded with " + catalog.size() + " seed entries.");
