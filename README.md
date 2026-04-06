@@ -110,7 +110,38 @@ src/main/java/com/example/springboot/
     └── ClientController.java                <-- [UC1/UC2/UC3] REST API endpoints under /api/client
 ```
 ## PHASE 2
+## Getting Started
 
+To clone the repository and start up the entire project, run the following commands:
+```bash
+git clone <repository_url>
+cd JobconsultingPlatform
+```
+The application starts up using the build command. If you are using Docker, you can start up the entire thing with:
+```bash
+docker-compose up --build
+```
+
+## Consultant Approval User Flow
+
+To test the consultant approval flow, log in as an administrator. You must use the same credentials, like `m` for both the username and password. From the admin dashboard, you can review, approve, or reject pending consultant registrations.
+
+## Testing Guide: Phase 2 Demo
+
+To ensure a smooth evaluation of the Consultant Dashboard, Booking Flow, and AI Chatbot, please follow these steps to synchronize the database with the application logic.
+
+### 1. Database Initialization (Resetting Slot 1)
+If the system returns an error stating "The selected time slot (id=1) is no longer available," it means the slot was flagged as booked during a previous test. Run the following SQL in your terminal to reset the environment for Consultant 99:
+
+```sql
+-- Reset Slot 1 to be Available
+UPDATE availability 
+SET status = 'AVAILABLE', booked = false, consultant_id = 99 
+WHERE id = 1;
+
+-- Ensure Consultant 99 is 'APPROVED' to allow dashboard access
+UPDATE consultant SET status = 'APPROVED' WHERE id = 99;
+``` 
 11.1 GitHub Repository Setup
 Repository Structure Your GitHub repository must include:
 • All source code (backend and frontend)
@@ -119,15 +150,7 @@ Repository Structure Your GitHub repository must include:
 • Docker configuration files (Dockerfile, docker-compose.yml)
 • .gitignore file (exclude dependencies, build artifacts, API keys)
 • .env.example (template for environment variables, NO actual API keys)
-Commit Requirements
-• All team members must have regular commits throughout the project
-• Commit messages must be descriptive (e.g., "Implement payment strategy pattern" not "update")
-• Commits should be atomic (one logical change per commit)
-• Minimum of 2-3 commits per week per team member
-Branching Strategy (Recommended)
-• main branch for stable, working code
-• Feature branches for developing new features
-• Pull requests for code review before merging to main
+
 
 AI: Technical Brief
 1. Architecture: Hybrid Reasoning Engine
