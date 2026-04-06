@@ -11,10 +11,8 @@ import com.example.springboot.repository.ConsultantRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*") // Allows the frontend to call this locally
 public class AuthController {
 
     @Autowired
@@ -26,6 +24,7 @@ public class AuthController {
     @Autowired
     private ConsultantRepository consultantRepository;
 
+    
     @PostMapping("/login")
     public ResponseEntity<?> saveUser(@RequestBody LoginRequest loginRequest) {
         String username = loginRequest.getUsername();

@@ -1,24 +1,47 @@
 import React, { useState, useEffect } from "react";
 import API from "./api";
-
+import { getConsultantBookings, getServices } from './api';
 const ConsultantDashboard = ({ setView, loginInfo }) => {
   const [activeTab, setActiveTab] = useState("bookings");
   const [bookings, setBookings] = useState([]);
   const [availabilities, setAvailabilities] = useState([]);
   const [newSlot, setNewSlot] = useState({ start: "", end: "" });
 
-  useEffect(() => {
-    // Mock data fetch, replace with actual endpoints later
-    // API.get("/consultant/bookings").then(res => setBookings(res.data));
-    setBookings([
-      { id: 1, serviceType: "Career Coaching", client: "Alice", state: "REQUESTED", date: "2026-04-10" }
-    ]);
+  // Inside useEffect in ConsultantDashboard.jsx
+/*useEffect(() => {
+  // Use the consultant ID we passed from login
+  const consultantId = loginInfo?.userId; 
+
+  if (consultantId) {
+    // These paths might need the /api prefix depending on your Java setup
+    API.get(`/api/consultant/bookings?consultantId=${consultantId}`)
+       .then(res => setBookings(res.data || []));
     
-    // API.get("/consultant/availability").then(res => setAvailabilities(res.data));
-    setAvailabilities([
-      { id: 101, start: "2026-04-12 10:00", end: "2026-04-12 11:00", status: "AVAILABLE" }
-    ]);
-  }, []);
+    API.get(`/api/consultant/availability?consultantId=${consultantId}`)
+       .then(res => setAvailabilities(res.data || []));
+  }
+}, [loginInfo]);*/
+useEffect(() => {
+  // Use the dynamic ID from login, fallback to 46 for testing
+  const id = loginInfo?.userId || 46;
+
+  // 1. Fetch Bookings using the helper (Matches /client/bookings)
+  getConsultantBookings(id)
+    .then(res => {
+      console.log("Bookings received:", res.data);
+      setBookings(res.data || []);
+    })
+    .catch(err => console.error("Booking Fetch Error:", err));
+
+  // 2. Fetch Services using the helper (Matches /client/services)
+  getServices()
+    .then(res => {
+      setServices(res.data || []);
+    })
+    .catch(err => console.error("Services Fetch Error:", err));
+}, [loginInfo]);
+
+
 
   const handleAccept = async (id) => {
     // await API.put(`/consultant/bookings/${id}/accept`);
@@ -57,28 +80,34 @@ const ConsultantDashboard = ({ setView, loginInfo }) => {
       </div>
 
       {activeTab === "bookings" && (
-        <div>
-          <h3>Incoming Client Requests & Active Bookings</h3>
-          {bookings.map(b => (
-            <div key={b.id} style={{ border: "1px solid #b2bec3", padding: "15px", marginBottom: "15px", borderRadius: "8px", background: "#fdfdfd" }}>
-              <p><strong>Service:</strong> {b.serviceType}</p>
-              <p><strong>Client:</strong> {b.client} | <strong>Date:</strong> {b.date}</p>
-              <p><strong>Status:</strong> <span style={{ color: "#d63031", fontWeight: "bold" }}>{b.state}</span></p>
-              <div style={{ marginTop: "10px", display: "flex", gap: "10px" }}>
-                {b.state === "REQUESTED" && (
-                  <>
-                    <button onClick={() => handleAccept(b.id)} style={{ padding: "8px 16px", background: "#00b894", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Accept Request</button>
-                    <button onClick={() => handleReject(b.id)} style={{ padding: "8px 16px", background: "#d63031", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Reject</button>
-                  </>
-                )}
-                {(b.state === "PAID" || b.state === "CONFIRMED") && (
-                  <button onClick={() => handleComplete(b.id)} style={{ padding: "8px 16px", background: "#0984e3", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Mark as Completed</button>
-                )}
-              </div>
-            </div>
-          ))}
+  <div>
+    <h3>Incoming Client Requests & Active Bookings</h3>
+    {bookings.length === 0 ? (
+      <p style={{ color: "#636e72" }}>No bookings found for your ID.</p>
+    ) : (
+      bookings.map(b => (
+        <div key={b.id} style={{ border: "1px solid #b2bec3", padding: "15px", marginBottom: "15px", borderRadius: "8px", background: "#fdfdfd" }}>
+          {/* Fallback to 'Consulting Session' if Java doesn't send the string */}
+          <p><strong>Service:</strong> {b.serviceType || "Expert Consulting Session"}</p>
+          <p><strong>Booking ID:</strong> #{b.id} | <strong>Price:</strong> ${b.basePrice || b.base_price}</p>
+          <p><strong>Status:</strong> <span style={{ color: "#d63031", fontWeight: "bold" }}>{b.state}</span></p>
+          
+          <div style={{ marginTop: "10px", display: "flex", gap: "10px" }}>
+            {b.state === "REQUESTED" && (
+              <>
+                <button onClick={() => handleAccept(b.id)} style={{ padding: "8px 16px", background: "#00b894", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Accept Request</button>
+                <button onClick={() => handleReject(b.id)} style={{ padding: "8px 16px", background: "#d63031", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Reject</button>
+              </>
+            )}
+            {(b.state === "PAID" || b.state === "CONFIRMED" || b.state === "APPROVED") && (
+              <button onClick={() => handleComplete(b.id)} style={{ padding: "8px 16px", background: "#0984e3", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>Mark as Completed</button>
+            )}
+          </div>
         </div>
-      )}
+      ))
+    )}
+  </div>
+)}
 
       {activeTab === "availability" && (
         <div>

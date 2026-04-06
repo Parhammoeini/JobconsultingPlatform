@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.*;
 
 // This is the entry point
 // Converts HTTP requests to Java objects 
-@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/payments")
 public class PaymentController {

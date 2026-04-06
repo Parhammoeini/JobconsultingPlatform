@@ -30,12 +30,14 @@ function App() {
   const [selectedService, setSelectedService] = useState(null);
   const [loading, setLoading] = useState(false);
   const [myBookings, setMyBookings] = useState([]);
-<<<<<<< HEAD
   const [loginInfo, setLoginInfo] = useState(null);
-=======
+  // Add these with your other useState hooks
+ // TOP of your App component
+  const [userId, setUserId] = useState(null);     
+  const [userRole, setUserRole] = useState(null); 
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   
-  
->>>>>>> 4b9ed38 (Finalizing AI assistant and payment features for Phase 2)
 
   // Load services immediately after login
   useEffect(() => {
@@ -45,36 +47,74 @@ function App() {
   }
 }, [view]);
 
-  const fetchMyBookings = async () => {
+const fetchMyBookings = async () => {
+  if (!userId) return;
   try {
-    const res = await API.get("/client/bookings", {
-      params: { clientId: 1 } 
-    });
-    setMyBookings(res.data);
+    const res = await API.get(`/client/bookings?clientId=${userId}`);
+    setMyBookings(res.data || []);
   } catch (err) {
-    console.error("Error fetching bookings:", err);
+    console.error("Bookings fetch failed:", err);
+    setMyBookings([]);
   }
 };
-  const handleLoginSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await loginAndSave(credentials);
-      const info = res.data;
-      setLoginInfo(info);
-      if (info.role === "CONSULTANT" && info.status === "APPROVED") {
-        setView("consultant");
-      } else {
-        setView("dashboard");
-      }
-    } catch (err) {
-      alert("Login failed: " + (err.response?.data?.error || err.response?.data || err.message));
+
+const fetchServices = async () => {
+  try {
+    // If your teammate added /api to all controllers:
+    const res = await API.get("/api/services"); 
+    setServices(res.data || []);
+  } catch (err) {
+    console.error("Fetch services failed", err);
+  }
+};
+
+
+const handleLoginSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const res = await loginAndSave(credentials);
+    const info = res.data;
+    
+    setLoginInfo(info);
+    setUserId(info.userId || info.id || 44);
+    setUsername(info.username || info.name);
+
+    // CRITICAL: Logic to determine role based on what the server sends
+    let detectedRole = "CLIENT"; 
+    
+    if (info.role) {
+      detectedRole = info.role.toUpperCase();
+    } else if (info.specialization || info.status) {
+      // If the object has consultant-specific fields, it's a consultant!
+      detectedRole = "CONSULTANT";
     }
-  };
+
+    setUserRole(detectedRole);
+    localStorage.setItem("userRole", detectedRole);
+
+    // Routing
+    if (detectedRole === "CONSULTANT") {
+      setView("consultant");
+    } else if (detectedRole === "ADMIN") {
+      setView("admin");
+    } else {
+      setView("dashboard");
+    }
+
+    await fetchServices();
+  } catch (err) {
+    alert("Login failed");
+  }
+};
+
+
+    
+
 
   const [chatHistory, setChatHistory] = useState([
   { role: 'ai', text: "Hello! I'm your JobConsulting Assistant. How can I help you with your career journey today?" }
   ]);
-
+// AI
 const handleAiConsult = async () => {
   if (!profile.trim()) return;
 
@@ -110,27 +150,47 @@ const handleAiConsult = async () => {
   setProfile(""); // Clear input
   setLoading(false);
 };
-
+/*
   // To Request a Booking:
   const handleRequestBooking = async (service) => {
   try {
-    const requestData = {
-      clientId: 1, 
-      // Use the actual consultant from the service card
-      consultantId: service.consultant_id || service.consultantId, 
-      // Dynamically pick the slot ID (we mapped them to match in the SQL above)
-      availabilitySlotId: service.id + 200, 
-      serviceId: service.id
+    const payload = {
+      clientId: userId,
+      consultantId: service.consultantId || service.consultant_id,
+      serviceType: service.serviceType || service.service_type,
+      basePrice: service.basePrice || service.base_price,
+      availabilityId: (service.id + 200) 
     };
 
-    await API.post("/client/bookings", requestData);
-    alert(`Request for ${service.serviceType || service.service_type} sent!`);
+    // CHANGE THIS LINE to match your teammate's new path
+    await API.post("/client/bookings", payload); 
+    
+    alert("Request Sent!");
     fetchMyBookings();
   } catch (err) {
-    alert("Booking failed: " + (err.response?.data?.error || err.message));
+    console.error(err);
+    alert("Booking failed: " + err.message);
+  }
+};*/
+const handleRequestBooking = async (service) => {
+  try {
+    const payload = {
+      clientId: userId,           // Must match Java's Long clientId
+      consultantId: service.consultantId || 1, 
+      serviceId: service.id,
+      availabilitySlotId: 1       // Ensure you have a default slot if none selected
+    };
+    
+    await requestBooking(payload);
+    alert("Booking Requested!");
+    fetchMyBookings();
+  } catch (err) {
+    console.error(err.response.data);
+    alert("Booking failed: " + (err.response?.data?.error || "Server Error"));
   }
 };
 
+// GET STATUS
    const getStatusStyle = (state) => {
     switch (state) {
     case 'PAID': return { background: '#00b894', color: 'white', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' };
@@ -140,6 +200,23 @@ const handleAiConsult = async () => {
     default: return { background: '#dfe6e9', color: 'black', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' };
   }
 };
+
+
+// HANDLE LOGOUT
+const handleLogout = () => {
+  // 1. Clear the data arrays
+  setChatHistory([]);
+  setMyBookings([]);
+  
+  // 2. Clear user session
+  setUserId(null);
+  setUserRole(null);
+  setProfile(""); 
+  
+  // 3. Redirect to login
+  setView("login");
+};
+//HANDLE CANCEL
 const handleCancel = async (bookingId) => {
   // 1. UI Confirmation
   const confirmCancel = window.confirm("Are you sure you want to cancel this request?");
@@ -160,210 +237,162 @@ const handleCancel = async (bookingId) => {
     console.error("Cancel Error:", err);
     alert("Could not cancel: " + (err.response?.data?.error || "Server error"));
   }
+
 };
 
+// --- RENDER LOGIC ---
+// --- 1. SPECIALIZED FULL-SCREEN VIEWS (MENTOR FLOW) ---
+  if (view === "mentor-benefits") return <BecomeMentor setView={setView} />;
+  if (view === "mentor-form") return <MentorApplication setView={setView} />;
 
-if (view === "admin") {
-  return (
-    <div style={{ padding: "20px" }}>
-      <button 
-        onClick={() => setView("login")} 
-        style={{ marginBottom: "20px", padding: "8px 20px", background: "#d63031", color: "white", border: "none", borderRadius: "8px", cursor: "pointer" }}
-      >
-        ← Back to Login
-      </button>
-      <AdminDashboard />
-    </div>
-  );
-}
-
-  // --- LOGIN VIEW ---
+  // --- 2. LOGIN VIEW (NO NAVBAR) ---
   if (view === "login") {
     return (
       <div style={styles.loginContainer}>
         <div style={styles.loginCard}>
           <h1 style={{ color: "#2d3436", marginBottom: "10px" }}>JobConsulting.ai</h1>
-          <p style={{ color: "#636e72", marginBottom: "30px" }}>Your personalized career path starts here.</p>
-          <form onSubmit={handleLoginSubmit} style={styles.form}>
-            <input type="text" placeholder="Username" required style={styles.input} onChange={(e) => setCredentials({...credentials, username: e.target.value})} />
-            <input type="password" placeholder="Password" required style={styles.input} onChange={(e) => setCredentials({...credentials, password: e.target.value})} />
-            <button type="submit" style={styles.primaryBtn}>Enter Platform</button>
+          <p style={{ color: "#636e72", marginBottom: "30px" }}>Phase 2: Expert Career Guidance</p>
+          
+          <form onSubmit={handleLoginSubmit} style={{ width: '100%' }}>
+            <input 
+              type="text" 
+              placeholder="Username" 
+              required 
+              style={styles.input} 
+              onChange={(e) => setCredentials({...credentials, username: e.target.value})} 
+            />
+            <input 
+              type="password" 
+              placeholder="Password" 
+              required 
+              style={styles.input} 
+              onChange={(e) => setCredentials({...credentials, password: e.target.value})} 
+            />
+            <button type="submit" style={styles.loginBtn}>Enter Platform</button>
           </form>
+
           <button
             onClick={() => {
-            const pwd = prompt("Enter admin password:");
-            if (pwd === "admin123") {
-            setView("admin");
-            } else {
-            alert("Incorrect password");
-            }
-          }}
-            style={{ marginTop: "15px", padding: "10px 20px", background: "#2d3436", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", width: "100%" }}
-
+              const pwd = prompt("Enter admin password:");
+              if (pwd === "admin123") setView("admin");
+              else alert("Incorrect password");
+            }}
+            style={{ 
+              marginTop: "15px", padding: "10px", background: "#2d3436", color: "white", 
+              border: "none", borderRadius: "8px", cursor: "pointer", width: "100%", fontSize: "12px"
+            }}
           >
-          Admin Panel
-        </button>
+            Admin Portal Access
+          </button>
         </div>
       </div>
     );
   }
 
-  if (view === "consultant") {
-    return <ConsultantDashboard setView={setView} loginInfo={loginInfo} />;
-  }
-
-  if (view === "mentor-benefits") {
-    return <BecomeMentor setView={setView} />;
-  }
-
-  if (view === "mentor-form") {
-    return <MentorApplication setView={setView} />;
-  }
-
-  // --- DASHBOARD VIEW (USER FOCUS) ---
+  // --- 3. MAIN DASHBOARD CONTAINER (ADMIN, STAFF, OR CLIENT) ---
   return (
     <div style={styles.dashboardContainer}>
       <nav style={styles.navbar}>
-        <span style={styles.logo}>JobConsulting.ai</span>
-        <div>
-          <button onClick={() => setView("mentor-benefits")} style={{ ...styles.navBtn, marginRight: "10px", backgroundColor: "#0984e3", color: "white", borderRadius: "20px", padding: "8px 16px", border: "none", cursor: "pointer", fontWeight: "bold" }}>Become a Consultant</button>
-          <button onClick={() => setView("login")} style={styles.logoutBtn}>Logout</button>
+        <span style={styles.logo}>
+          JobConsulting.ai {view === "admin" ? "(Admin)" : userRole === 'CONSULTANT' ? "(Staff)" : "(Client)"}
+        </span>
+        
+        <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+          {/* Become Consultant button: Only show for Clients who aren't in Admin view */}
+          {userRole !== 'CONSULTANT' && view !== "admin" && (
+            <button 
+              onClick={() => setView("mentor-benefits")} 
+              style={{ 
+                backgroundColor: "#0984e3", color: "white", borderRadius: "20px", 
+                padding: "8px 16px", border: "none", cursor: "pointer", fontWeight: "bold", fontSize: "14px"
+              }}
+            >
+              Become a Consultant
+            </button>
+          )}
+          <button onClick={handleLogout} style={styles.logoutBtn}>Logout</button>
         </div>
       </nav>
 
       <div style={styles.content}>
-        
-     {/* SECTION 1: BOOKING & PAYMENT TRACKER (State + Strategy Pattern) */}
-<section style={styles.bookingTracker}>
-  <h3>📅 My Journey & History</h3>
-  {myBookings.length === 0 ? (
-    <p style={{ color: "#999" }}>No active requests yet. Start by consulting our AI guide!</p>
-  ) : (
-    myBookings.map(b => (
-      <div key={b.id} style={styles.bookingRow}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <strong style={{ color: "#2d3436" }}>{b.serviceType || "Consulting Session"}</strong> 
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-             <span style={getStatusStyle(b.state)}>{b.state}</span>
-             <span style={{ color: "#636e72", fontSize: "14px" }}>${b.basePrice}</span>
-          </div>
-        </div>
-        
-        <div style={styles.actionGroup}>
-          {/* 1. CANCEL FEATURE (Required) */}
-          {b.state === "REQUESTED" && (
-            <button 
-              onClick={() => handleCancel(b.id)} 
-              style={styles.cancelBtn}
-            >
-              🚫 Cancel
-            </button>
-          )}
+        {/* ROUTING ENGINE */}
+        {view === "admin" ? (
+          <AdminDashboard />
+        ) : userRole === "CONSULTANT" ? (
+          /* STAFF VIEW */
+          <ConsultantDashboard 
+            setView={setView} 
+            loginInfo={{ username, userId }} 
+          />
+        ) : (
+          /* CLIENT VIEW */
+          <>
+            <section style={styles.bookingTracker}>
+              <h3>📅 My Journey & History</h3>
+              {myBookings.length === 0 ? (
+                <p style={{ color: "#999" }}>No active requests yet.</p>
+              ) : (
+                myBookings.map(b => (
+                  <div key={b.id} style={styles.bookingRow}>
+                    <div>
+                      <strong>{b.serviceType || "Expert Session"}</strong>
+                      <div style={{ display: 'flex', gap: '10px' }}>
+                         <span style={getStatusStyle(b.state)}>{b.state}</span>
+                         <span>${b.basePrice}</span>
+                      </div>
+                    </div>
+                    <div style={styles.actionGroup}>
+                      {b.state === "REQUESTED" && <button onClick={() => handleCancel(b.id)} style={styles.cancelBtn}>🚫 Cancel</button>}
+                      {b.state === "PENDING_PAYMENT" && <button onClick={() => setSelectedService(b)} style={styles.payBtn}>💳 Pay</button>}
+                    </div>
+                  </div>
+                ))
+              )}
+            </section>
 
-          {/* 2. TRIGGER STRATEGY PATTERN (Required) */}
-          {b.state === "PENDING_PAYMENT" && (
-            <button 
-              onClick={() => setSelectedService(b)} 
-              style={styles.payBtn}
-            >
-              💳 Pay Now
-            </button>
-          )}
-
-          {/* 3. PAYMENT HISTORY (Required) */}
-          {b.state === "PAID" && (
-            <span style={{ color: "#00b894", fontWeight: "bold" }}>✅ Receipt Issued</span>
-          )}
-        </div>
-      </div>
-    ))
-  )}
-</section>
-      <header style={styles.aiHeader}>
-    <h2>🤖 AI Career Guide</h2>
-    <div style={styles.chatWindow}>
-    <div style={styles.chatThread}>
-      {chatHistory.map((msg, i) => (
-        <div key={i} style={msg.role === 'ai' ? styles.aiBubble : styles.userBubble}>
-          <strong>{msg.role === 'ai' ? "AI: " : "You: "}</strong>{msg.text}
-        </div>
-      ))}
-      {loading && <div style={styles.aiBubble}><em>Thinking...</em></div>}
-      </div>
-    
-    <div style={styles.inputGroup}>
-      <input 
-        value={profile} 
-        onChange={(e) => setProfile(e.target.value)} 
-        onKeyPress={(e) => e.key === 'Enter' && handleAiConsult()}
-        placeholder="Ask about booking, payments, or your career..." 
-        style={styles.chatInput}
-      />
-      <button onClick={handleAiConsult} style={styles.sendBtn}>Send</button>
-    </div>
-  </div>
-</header>
-
-        {/* SECTION 3: SERVICE CATALOG (The Products) */}
-        <section style={styles.serviceSection}>
-          <h3>💼 Available Expert Services</h3>
-          <div style={styles.grid}>
-            {services.map(s => (
-              <div key={s.id} style={styles.serviceCard}>
-                <div style={styles.cardHeader}>
-                  <h4>{s.serviceType || s.service_type}</h4>
-                  <span style={styles.priceTag}>${s.basePrice || s.base_price}</span>
-                </div>
-                <p style={styles.description}>{s.description}</p>
-                <div style={styles.consultantInfo}>
-                  <span>👤 Expert: {s.consultantName || "Assigned on Request"}</span>
-                </div>
-                {/* This button starts the REQUEST flow, not the PAY flow */}
-                <button onClick={() => handleRequestBooking(s)} style={styles.bookBtn}>
-                  Request Appointment
-                </button>
+            <section style={styles.aiHeader}>
+              <h2>🤖 AI Career Guide</h2>
+              <div style={styles.chatThread}>
+                {chatHistory.map((msg, i) => (
+                  <div key={i} style={msg.role === 'ai' ? styles.aiBubble : styles.userBubble}>{msg.text}</div>
+                ))}
               </div>
-            ))}
-          </div>
-        </section>
+              <div style={styles.inputGroup}>
+                <input value={profile} onChange={(e) => setProfile(e.target.value)} placeholder="Ask AI..." style={styles.chatInput} />
+                <button onClick={handleAiConsult} style={styles.sendBtn}>Send</button>
+              </div>
+            </section>
 
-        {/* SECTION 4: PAYMENT MODAL (Strategy Pattern) */}
+            <section style={styles.serviceSection}>
+              <h3>💼 Available Expert Services</h3>
+              <div style={styles.grid}>
+                {services.map(s => (
+                  <div key={s.id} style={styles.serviceCard}>
+                    <h4>{s.serviceType || s.service_type}</h4>
+                    <p>{s.description}</p>
+                    <button onClick={() => handleRequestBooking(s)} style={styles.bookBtn}>Request - ${s.basePrice || s.base_price}</button>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </>
+        )}
+
+        {/* Payment Modal */}
         {selectedService && (
           <div style={styles.modalOverlay}>
-             <div style={styles.modal}>
-               <button onClick={() => setSelectedService(null)} style={styles.closeBtn}>✕</button>
-               <h3 style={{ marginTop: 0 }}>Complete Your Payment</h3>
-               <p>Service: <strong>{selectedService.serviceType}</strong></p>
-               <hr />
-               <Payment selectedService={selectedService} onClose={() => setSelectedService(null)} />
-             </div>
+            <div style={styles.modal}>
+              <h3>💳 Checkout: {selectedService.serviceType || selectedService.service_type}</h3>
+              <button onClick={handleFinalPayment} style={styles.confirmBtn}>Confirm Payment</button>
+              <button onClick={() => setSelectedService(null)} style={styles.cancelBtn}>Close</button>
+            </div>
           </div>
         )}
-        {selectedService && (
-  <div style={styles.modalOverlay}>
-    <div style={styles.modal}>
-      <h3>💳 Checkout: {selectedService.serviceType}</h3>
-      <p>Amount Due: <strong>${selectedService.basePrice}</strong></p>
-      
-      <label style={{display: 'block', marginBottom: '10px'}}>Select Payment Method:</label>
-      <select 
-        style={styles.select} 
-        onChange={(e) => setPaymentMethod(e.target.value)}
-      >
-        <option value="CREDIT_CARD">Visa/Mastercard (**** 4242)</option>
-        <option value="PAYPAL">PayPal (User: {profile || "parham@yorku.ca"})</option>
-      </select>
-
-      <div style={{marginTop: '20px', display: 'flex', gap: '10px'}}>
-        <button onClick={handleFinalPayment} style={styles.confirmBtn}>Confirm Payment</button>
-        <button onClick={() => setSelectedService(null)} style={styles.cancelBtn}>Close</button>
-      </div>
-    </div>
-  </div>
-)}
       </div>
     </div>
   );
+
+
 }
 
 // --- NICE CSS-IN-JS STYLES ---
@@ -468,7 +497,50 @@ const styles = {
     cursor: "pointer",
     fontSize: "13px",
     fontWeight: "bold"
-  }
+  },
+  loginContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100vh',
+    width: '100vw',
+    background: 'linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%)',
+    margin: 0,
+    padding: 0,
+    overflow: 'hidden',
+  },
+  loginCard: {
+    background: '#ffffff',
+    padding: '40px',
+    borderRadius: '20px',
+    boxShadow: '0 15px 35px rgba(0,0,0,0.2)',
+    width: '100%',
+    maxWidth: '400px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  input: {
+    width: '100%',
+    padding: '12px 15px',
+    margin: '8px 0 20px 0',
+    borderRadius: '10px',
+    border: '1px solid #dfe6e9',
+    fontSize: '16px',
+    boxSizing: 'border-box', // Crucial so padding doesn't break width
+  },
+  loginBtn: {
+    width: '100%',
+    padding: '14px',
+    backgroundColor: '#6c5ce7',
+    color: 'white',
+    border: 'none',
+    borderRadius: '10px',
+    fontSize: '16px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    boxShadow: '0 4px 15px rgba(108, 92, 231, 0.3)',
+    transition: 'transform 0.1s ease',}
 
 };
 

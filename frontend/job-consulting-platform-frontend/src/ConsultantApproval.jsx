@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import API from "./api";
+// Import the specific functions from your api.js
+import { getPendingConsultants, approveConsultant, rejectConsultant } from "./api";
 
 export default function ConsultantApproval() {
   const [pendingConsultants, setPendingConsultants] = useState([]);
@@ -11,18 +12,20 @@ export default function ConsultantApproval() {
 
   const fetchPending = async () => {
     try {
-      const res = await API.get("/admin/consultants/pending");
-      setPendingConsultants(res.data);
+      // Use the exported function
+      const res = await getPendingConsultants();
+      setPendingConsultants(res.data || []);
     } catch (err) {
-      setMessage("Error fetching consultants");
+      setMessage("Error fetching consultants. Check console for 404.");
     }
   };
 
   const handleApprove = async (id) => {
     try {
-      await API.put(`/admin/consultants/${id}/approve`);
+      // Use the exported function
+      await approveConsultant(id);
       setPendingConsultants(prev => prev.filter(c => c.id !== id));
-      setMessage("Consultant approved");
+      setMessage("Consultant approved successfully!");
     } catch {
       setMessage("Error approving consultant");
     }
@@ -30,14 +33,14 @@ export default function ConsultantApproval() {
 
   const handleReject = async (id) => {
     try {
-      await API.put(`/admin/consultants/${id}/reject`);
+      // Use the exported function
+      await rejectConsultant(id);
       setPendingConsultants(prev => prev.filter(c => c.id !== id));
       setMessage("Consultant rejected");
     } catch {
       setMessage("Error rejecting consultant");
     }
   };
-
   return (
     <div>
       <h2>Pending Consultants</h2>

@@ -21,9 +21,8 @@ import java.util.stream.Collectors;
  *
  * Base URL: /api/client
  */
-@CrossOrigin(origins = "http://localhost:3000") // ADD THIS LINE
 @RestController
-@RequestMapping("/api/client")
+@RequestMapping("/client")
 public class ClientController {
 
     private final ConsultingServiceCatalogService catalogService;

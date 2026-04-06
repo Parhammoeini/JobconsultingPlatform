@@ -4,10 +4,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.example.springboot.service.AiConsultingService;
 import java.util.Map;
+@CrossOrigin(origins = "*") // temporary for local frontend testing; tighten later
 
 @RestController
 @RequestMapping("/api/ai")  // or "/api/client/ai" to group under client
-@CrossOrigin(origins = "*") // temporary for local frontend testing; tighten later
 public class AiController {  // or append to existing ClientController
 
     private final AiConsultingService aiService;
