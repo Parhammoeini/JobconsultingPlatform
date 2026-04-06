@@ -191,5 +191,22 @@ Process: "How does the booking and payment process work?"
 <img width="1433" height="729" alt="Screenshot 2026-04-05 at 11 42 05 PM" src="https://github.com/user-attachments/assets/6e9077cd-2bf8-4ce8-8628-e0cb59ffe6b6" />
 <img width="1433" height="729" alt="Screenshot 2026-04-05 at 11 42 26 PM" src="https://github.com/user-attachments/assets/bd000a7b-1463-4ff5-9898-8d63e9f6417f" />
 
+## Consultant Approval User Flow
+
+To test the consultant approval flow, follow these steps:
+1. Log in with the example credentials: `m` for username and `m` for password.
+2. Apply to be a consultant through the designated application page.
+3. Log out.
+4. Go to the admin login and sign in with `admin123` for both username and password.
+5. Review and approve the pending consultant registration.
+6. Log out.
+7. Log back in with the `m` and `m` credentials.
+8. You should see a "congrats on becoming a consultant" message and have access to the consultant dashboard.
+
+## Testing Guide: Phase 2 Demo
+
+To ensure a smooth evaluation of the Consultant Dashboard, Booking Flow, and AI Chatbot, please follow these steps to synchronize the database with the application logic.
+
+
 
 
