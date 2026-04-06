@@ -111,4 +111,55 @@ src/main/java/com/example/springboot/
 ```
 ## PHASE 2
 
+11.1 GitHub Repository Setup
+Repository Structure Your GitHub repository must include:
+• All source code (backend and frontend)
+• UML diagrams (preferably source files like .plantuml or .drawio)
+• Documentation files (README.md, design documents)
+• Docker configuration files (Dockerfile, docker-compose.yml)
+• .gitignore file (exclude dependencies, build artifacts, API keys)
+• .env.example (template for environment variables, NO actual API keys)
+Commit Requirements
+• All team members must have regular commits throughout the project
+• Commit messages must be descriptive (e.g., "Implement payment strategy pattern" not "update")
+• Commits should be atomic (one logical change per commit)
+• Minimum of 2-3 commits per week per team member
+Branching Strategy (Recommended)
+• main branch for stable, working code
+• Feature branches for developing new features
+• Pull requests for code review before merging to main
+
+AI: Technical Brief
+1. Architecture: Hybrid Reasoning Engine
+
+PathFinder AI uses a two-tier architecture to ensure 100% uptime and architectural alignment.
+
+Layer 1: Intent-Based Logic (Regex)
+
+Purpose: Instant, 100% accurate FAQ responses.
+
+Highlight: References the Strategy Design Pattern for payments, proving frontend-backend synergy.
+
+Layer 2: Bio-Assessment (ML/Heuristics)
+
+Purpose: Maps user biographies to 6 core services via suggestServices API.
+
+Fail-Safe: If the API is unreachable, a Local Reasoning Engine uses keyword heuristics (e.g., "CS Student") to provide a contextually accurate fallback.
+
+2. Interaction Tracks
+
+Input Type    Logic Trigger    Sample Response
+Process    includes("book")    "1️⃣ Browse... 2️⃣ Request..."
+Strategy    includes("pay")    "We use the Strategy Pattern for security."
+Academic    includes("cs student")    "Recommend: Mock Interview."
+Professional    length > 15    "🧠 AI Analysis: I recommend Resume Review..."
+
+3. Demo Prompts
+
+Technical: "I am a CS student at York with a background in Java."
+
+Pivot: "I have 5 years of marketing experience but want to move into Tech."
+
+Process: "How does the booking and payment process work?"
+
 
