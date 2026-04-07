@@ -207,6 +207,309 @@ To test the consultant approval flow, follow these steps:
 
 To ensure a smooth evaluation of the Consultant Dashboard, Booking Flow, and AI Chatbot, please follow these steps to synchronize the database with the application logic.
 
+## Prerequisites
+
+Ensure the following are installed before proceeding:
+
+| Tool | Download |
+|------|----------|
+| Docker Desktop (includes docker-compose) | https://www.docker.com/products/docker-desktop |
+| Git | https://git-scm.com |
+
+> **Windows users:** Make sure Docker Desktop is fully running (whale icon in taskbar) before executing any commands.
+
+---
+
+## Step 1 — Clone the Repository
+
+```bash
+git clone https://github.com/Parhammoeini/JobconsultingPlatform.git
+cd JobconsultingPlatform
+```
+
+---
+
+## Step 2 — Set Up the API Key
+
+The AI chatbot feature requires a **Groq API key**.
+
+1. Create a free account at https://console.groq.com
+2. Generate an API key from the dashboard
+3. In the project root (same folder as `docker-compose.yml`), create a `.env` file:
+
+```bash
+# Mac/Linux
+echo "GROQ_API_KEY=your_actual_key_here" > .env
+
+# Windows (PowerShell)
+echo "GROQ_API_KEY=your_actual_key_here" | Out-File -Encoding utf8 .env
+```
+
+> The AI chatbot has a local keyword fallback and will partially work without a key, but full AI-powered recommendations require one.
+
+---
+
+## Step 3 — Build and Start All Services
+
+From the project root:
+
+```bash
+docker-compose up --build -d
+```
+
+This single command will:
+- Build the **Spring Boot backend** from `backend/Dockerfile`
+- Build the **React frontend** from `frontend/job-consulting-platform-frontend/Dockerfile`
+- Start a **PostgreSQL 16** database on port `5433`
+- Connect all three services on a shared Docker network
+
+> **First-time build takes 3–5 minutes.** Maven downloads dependencies and Node builds the React app. Subsequent starts are much faster.
+
+---
+
+## Step 4 — Verify All Containers Are Running
+
+```bash
+docker-compose ps
+```
+
+All three should show `Up`:
+
+```
+NAME                           STATUS
+job-consulting-frontend        Up    (port 3000)
+job-consulting-api             Up    (port 8080)
+postgres-sql-jobconsulting     Up    (port 5433)
+```
+
+If any container shows `Exit`, check its logs:
+
+```bash
+docker logs job-consulting-api
+docker logs job-consulting-frontend
+```
+
+---
+
+## Step 5 — Open the Application
+
+| Service | URL |
+|---------|-----|
+| **Frontend (Main App)** | http://localhost:3000 |
+| **Backend API** | http://localhost:8080 |
+
+---
+
+## Logging In
+
+### As a Client
+Enter **any username and password** on the login page — the system auto-registers new users as Clients on first login.
+
+### As an Admin
+On the login page, click **"Admin Portal Access"** and enter the password: `admin123`
+
+### Consultant Approval Flow (Full Demo)
+
+1. Log in with username `m` and password `m`
+2. Apply to become a consultant via the application page
+3. Log out
+4. Click **Admin Portal Access** → enter `admin123`
+5. Approve the pending consultant from the admin dashboard
+6. Log out, then log back in with `m` / `m`
+7. You now have access to the Consultant Dashboard
+
+---
+
+## Database Access (Optional)
+
+The schema is created automatically by Spring Boot on startup — no manual migration needed.
+
+To open an interactive PostgreSQL shell:
+
+```bash
+docker exec -it postgres-sql-jobconsulting psql -U username -d job_consulting
+```
+
+Useful commands inside the shell:
+
+```sql
+\dt                      -- list all tables
+SELECT * FROM app_user;  -- view registered users
+SELECT * FROM booking;   -- view all bookings
+\q                       -- exit
+```
+
+### Resetting Test Data
+
+If you see "The selected time slot is no longer available," run:
+
+```bash
+docker exec -it postgres-sql-jobconsulting psql -U username -d job_consulting -c "
+UPDATE availability SET status = 'AVAILABLE', booked = false, consultant_id = 99 WHERE id = 1;
+UPDATE consultant SET status = 'APPROVED' WHERE id = 99;
+"
+```
+
+---
+
+## Stopping the Application
+
+```bash
+# Stop containers but preserve database data
+docker-compose down
+
+# Stop and delete all data (full reset)
+docker-compose down -v
+```
+
+## Rebuilding After Code Changes
+
+```bash
+docker-compose down
+docker-compose up --build -d
+```
+
+---
+
+## Project Structure
+
+```
+JobconsultingPlatform/
+├── docker-compose.yml
+├── README.md
+├── BookingSystemDemo.java
+│
+├── backend/
+│   ├── Dockerfile
+│   ├── pom.xml
+│   ├── startup.log
+│   └── src/main/java/com/example/springboot/
+│       ├── Application.java
+│       ├── CorsConfig.java                        ← Global CORS configuration
+│       ├── controller/
+│       │   ├── AuthController.java                ← Login & auto-registration
+│       │   ├── ClientController.java              ← Booking & service endpoints
+│       │   ├── AdminController.java               ← Consultant approval & policies
+│       │   ├── AiController.java                  ← AI recommendation endpoint
+│       │   └── PaymentController.java             ← Payment processing
+│       ├── model/
+│       │   ├── AppUser.java / Client.java / Consultant.java / Admin.java
+│       │   ├── Booking.java / BookingState.java / BookingRequestDTO.java
+│       │   ├── Availability.java / AvailabilityStatus.java / AvailabilityFactory.java
+│       │   ├── ConsultingServiceInfo.java
+│       │   ├── PaymentRecord.java / PaymentRequest.java / PaymentType.java
+│       │   ├── SystemPolicy.java / PolicyManager.java  ← Singleton pattern
+│       │   ├── LoginRequest.java / CancellationResult.java
+│       │   └── RegistrationStatus.java
+│       ├── service/
+│       │   ├── ClientBookingService.java           ← UC1-UC3 booking logic
+│       │   ├── BookingLifecycleService.java        ← State pattern enforcement
+│       │   ├── ConsultingServiceCatalogService.java
+│       │   ├── AdminService.java                   ← UC11-UC12
+│       │   ├── AiConsultingService.java
+│       │   ├── AvailabilityService.java / impl/AvailabilityServiceImpl.java
+│       │   ├── PaymentService.java                 ← Strategy pattern orchestrator
+│       │   ├── PaymentHistoryService.java          ← Observer pattern
+│       │   └── PaymentMethodService.java
+│       ├── strategy/                               ← GoF Strategy pattern
+│       │   ├── PaymentStrategy.java
+│       │   ├── CreditCardStrategy.java
+│       │   ├── DebitCardStrategy.java
+│       │   ├── PayPalStrategy.java
+│       │   └── BankTransferStrategy.java
+│       ├── factory/
+│       │   └── PaymentStrategyFactory.java         ← GoF Factory pattern
+│       ├── observer/
+│       │   └── PaymentObserver.java                ← GoF Observer pattern
+│       └── repository/
+│           ├── AppUserRepository.java
+│           ├── ClientRepository.java
+│           ├── ConsultantRepository.java
+│           ├── AdminRepository.java
+│           ├── BookingRepository.java
+│           ├── AvailabilityRepository.java
+│           └── ConsultingServiceRepository.java
+│
+├── frontend/
+│   └── job-consulting-platform-frontend/
+│       ├── Dockerfile
+│       ├── package.json
+│       └── src/
+│           ├── App.jsx                            ← Main component, routing & views
+│           ├── api.js                             ← Axios client (baseURL: :8080/api)
+│           ├── AdminDashboard.jsx
+│           ├── ConsultantDashboard.jsx
+│           ├── ConsultantApproval.jsx
+│           ├── Availability.jsx
+│           ├── Booking.jsx
+│           ├── BecomeMentor.jsx / MentorApplication.jsx
+│           ├── PolicyManager.jsx
+│           ├── SystemStatus.jsx
+│           ├── SignUp.jsx
+│           └── payment.jsx
+│
+└── diagrams/
+    ├── UML.drawio.png
+    ├── Admin_Case_Diagram.png
+    ├── UC1.drawio.png  UC2.drawio.png  UC3.drawio.png
+    ├── UC4-7.png       UC8.png         UC9.png
+    ├── UC10.png        UC11.drawio.png UC12.drawio.png
+    └── use_case4-7.png
+```
+
+---
+
+## AI Chatbot Demo Prompts
+
+| Intent | Example Input |
+|--------|--------------|
+| Booking process | `"How do I book a session?"` |
+| Payment info | `"What payment methods do you accept?"` |
+| Cancel info | `"Can I cancel my booking?"` |
+| Service list | `"What types of services do you offer?"` |
+| Personalized AI | `"I'm a CS student at York with Java experience"` |
+| Career pivot | `"I have 5 years of marketing but want to move into tech"` |
+
+---
+
+## Troubleshooting
+
+**Port already in use**
+```bash
+# Mac/Linux
+lsof -ti:8080 | xargs kill -9
+
+# Windows PowerShell
+netstat -ano | findstr :8080
+taskkill /PID <PID> /F
+```
+
+**Backend exits immediately**
+```bash
+docker logs job-consulting-api --tail 50
+docker-compose restart backend
+```
+
+**Full reset**
+```bash
+docker-compose down -v --remove-orphans
+docker system prune -f
+docker-compose up --build -d
+```
+
+---
+
+## Environment Variables
+
+| Variable | Description | Where to set |
+|----------|-------------|--------------|
+| `GROQ_API_KEY` | Groq API key for AI features | `.env` file (you create this) |
+| `SPRING_DATASOURCE_URL` | PostgreSQL connection | pre-set in `docker-compose.yml` |
+| `SPRING_DATASOURCE_USERNAME` | DB username (`username`) | pre-set in `docker-compose.yml` |
+| `SPRING_DATASOURCE_PASSWORD` | DB password (`password`) | pre-set in `docker-compose.yml` |
+
+> Never commit your `.env` file. It is already covered by `.gitignore`. Only `.env.example` should be committed.
+
 
 
 
